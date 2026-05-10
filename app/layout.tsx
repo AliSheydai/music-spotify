@@ -5,6 +5,7 @@ import { Vazirmatn, Geist } from 'next/font/google'
 import { cn } from "@/lib/utils";
 import { MobileNav } from "@/components/layout/MobileNav";
 import { QueryProvider } from "@/components/layout/QueryProvider";
+import ViewTransitionProvider from "@/components/view-transition";
 
 const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
@@ -48,10 +49,12 @@ export default function RootLayout({
     <html lang="fa" dir="rtl" className={cn(vazirmatn.className, "font-sans", geist.variable)} suppressHydrationWarning>
       <body>
         <QueryProvider>
-          <main>
-            {children}
-          </main>
-          <MobileNav />
+          <ViewTransitionProvider>
+            <main>
+              {children}
+            </main>
+            <MobileNav />
+          </ViewTransitionProvider>
         </QueryProvider>
       </body>
     </html>

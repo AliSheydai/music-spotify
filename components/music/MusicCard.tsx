@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { Play, Pause, Plus, Check } from "lucide-react";
 import NextLink from "next/link";
+import { TransitionLink } from "@/components/view-transition";
 import { usePlayerStore } from "../../store/player-store";
 import type { Card } from "../../lib/mock-data";
 import Image from "next/image";
@@ -43,10 +44,10 @@ export function MusicCard({ card }: { card: Card }) {
       transition={{ type: "spring", stiffness: 300, damping: 25 }}
       className="shrink-0 w-[180px]"
     >
-      <NextLink
+      <TransitionLink
         href={resolveTo(linkTo, { id: card.id })}
-        className="block p-1.5 md:p-2 lg:p-3 rounded-lg bg-transparent hover:bg-bg-elevated group"
       >
+        <div className="block p-1.5 md:p-2 lg:p-3 rounded-lg bg-transparent hover:bg-bg-elevated group">
         <div className="relative mb-4">
           <img
             src={card.cover}
@@ -88,7 +89,8 @@ export function MusicCard({ card }: { card: Card }) {
             ? `${card.subtitle} • ${card.tracks.length} آهنگ`
             : card.subtitle}
         </p>
-      </NextLink>
+      </div>
+      </TransitionLink>
     </motion.div>
   );
 }

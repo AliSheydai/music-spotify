@@ -32,6 +32,7 @@ import {
   TooltipContent,
   TooltipProvider,
 } from "@/components/ui/tooltip";
+import { TransitionLink } from "@/components/view-transition";
 
 const AlbumSaveButton = React.forwardRef<HTMLButtonElement, { card: any } & React.ButtonHTMLAttributes<HTMLButtonElement>>(function AlbumSaveButton({ card, className: cls, onClick: onClickProp, ...rest }, ref) {
   const router = useRouter();
@@ -228,11 +229,11 @@ export default function PlaylistPage({ params }: Props) {
         animate={{ opacity: 1, y: 0 }}
         className="-mx-6 md:-mx-10 -mt-4 px-2">
         {/* back button */}
-        <Link href="/" className="absolute top-5 left-5 z-50 md:hidden">
+        <TransitionLink href="/" className="absolute top-5 left-5 z-50 md:hidden">
           <div className="flex items-center justify-center w-10 h-10 rounded-full bg-bg-surface/50 text-gray-300 hover:text-white transition-all">
             <ArrowLeft className="w-4 h-4" />
           </div>
-        </Link>
+        </TransitionLink>
         {/* Header */}
         <div
           className={`relative px-4 pt-12 pb-6 bg-gradient-to-b ${headerGradient} md:pt-8`}>
@@ -419,6 +420,24 @@ export default function PlaylistPage({ params }: Props) {
             );
           })}
 
+          {/* Empty state for liked playlist */}
+          {isLiked && tracks.length === 0 && (
+            <div className="py-24 text-center text-white/90">
+              <div className="max-w-2xl mx-auto">
+                <div className="w-40 h-40 mx-auto rounded-lg bg-gradient-to-br from-violet-600 to-fuchsia-500 flex items-center justify-center shadow-2xl mb-6">
+                  <Heart className="w-16 h-16 text-white" />
+                </div>
+                <h2 className="text-4xl font-black mb-3">آهنگ‌های لایک‌شده</h2>
+                <p className="text-lg text-white/70 mb-6">آهنگ‌هایی که دوست دارید و علامت قلب می‌زنید اینجا نمایش داده می‌شوند.</p>
+                <p className="text-sm text-white/60 mb-6">برای ذخیره آهنگ، روی آیکون قلب کنار هر آهنگ کلیک کنید.</p>
+                <div className="flex items-center justify-center">
+                  <Link href="/search" className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white text-black font-semibold shadow-sm">
+                    یافتن آهنگ
+                  </Link>
+                </div>
+              </div>
+            </div>
+          )}
           {/* Empty state for custom playlist */}
           {custom && tracks.length === 0 && !showSearch && (
             <div className="py-16 text-center text-text-secondary">

@@ -11,6 +11,7 @@ import { usePathname } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Home, LayoutGrid, Bell, User } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { TransitionLink } from '../view-transition'
 
 /* -------------------------------------------------------
    تب‌های ناوبری
@@ -80,7 +81,7 @@ export function MobileNav() {
           const Icon   = tab.icon
 
           return (
-            <Link
+            <TransitionLink
               key={tab.href}
               href={tab.href}
               className="flex-1 flex flex-col items-center justify-center gap-1
@@ -157,7 +158,7 @@ export function MobileNav() {
                   )}
                 </AnimatePresence>
               </motion.div>
-            </Link>
+            </TransitionLink>
           )
         })}
       </div>

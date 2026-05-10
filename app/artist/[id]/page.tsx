@@ -12,8 +12,7 @@ import { useArtist, useHomeData } from "@/lib/hooks";
 import { useLibraryStore } from "@/store/library-store";
 import { usePlayerStore } from "@/store/player-store";
 import { ArrowLeft } from "lucide-react";
-import Link from "next/link";
-
+import { TransitionLink } from "@/components/view-transition";
 // در Next.js پارامترها به این صورت دریافت می‌شوند
 import LikeButton from "@/components/music/LikeButton";
 
@@ -106,11 +105,11 @@ export default function ArtistPage() {
           background: `linear-gradient(180deg, ${tint} 0%, ${tintSoft} 360px, var(--bg-surface) 720px)`,
         }}>
         {/* back button */}
-        <Link href="/" className="absolute top-5 left-5 z-50 md:hidden">
+        <TransitionLink href="/" className="absolute top-5 left-5 z-50 md:hidden">
           <div className="flex items-center justify-center w-10 h-10 rounded-full bg-bg-surface/50 text-gray-300 hover:text-white transition-all">
             <ArrowLeft className="w-4 h-4" />
           </div>
-        </Link>
+        </TransitionLink>
 
         {/* Hero */}
         <div

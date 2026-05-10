@@ -1,6 +1,7 @@
 import NextLink from "next/link";
 import { Home, Bell, Music2 } from "lucide-react";
 import Link from "next/link";
+import { TransitionLink } from "../view-transition";
 
 export function Topbar() {
   return (
@@ -8,14 +9,14 @@ export function Topbar() {
       <div className="flex items-center justify-between px-6 py-2 rounded-xl backdrop-blur-2xl bg-white/5 border border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.37)]">
         
         {/* سمت چپ: لوگو */}
-        <Link href="/" className="flex items-center gap-3">
+        <TransitionLink href="/" className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500/80 to-pink-500/80 flex items-center justify-center">
             <Music2 className="w-5 h-5 text-white" />
           </div>
           <span className="text-white font-bold tracking-tight hidden sm:block">
             موزیک لند
           </span>
-        </Link>
+        </TransitionLink>
 
         {/* سمت راست: خانه، ارتقا، نوتیفیکیشن و پروفایل */}
         <div className="flex items-center gap-2">

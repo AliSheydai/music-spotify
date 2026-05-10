@@ -7,7 +7,7 @@ import { motion } from 'framer-motion'
 import { cn } from '../lib/utils'
 import Link       from 'next/link'
 import { Home, Music2 } from 'lucide-react'
-
+import { TransitionLink } from '@/components/view-transition'
 export default function NotFound() {
   return (
     <div className="min-h-screen bg-bg-base flex items-center justify-center p-8">
@@ -37,7 +37,7 @@ export default function NotFound() {
           آهنگی که دنبالش می‌گردید در این آدرس نیست!
         </p>
 
-        <Link href="/">
+        <TransitionLink href="/">
           <motion.button
             className={cn(
               'flex items-center gap-2 px-6 py-2.5 rounded-full',
@@ -50,7 +50,7 @@ export default function NotFound() {
             <Home size={16} />
             بازگشت به خانه
           </motion.button>
-        </Link>
+        </TransitionLink>
       </motion.div>
     </div>
   )
