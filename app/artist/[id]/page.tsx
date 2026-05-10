@@ -21,6 +21,36 @@ function ArtistTrackLikeButton({ track, artist }: { track: any; artist: any }) {
   return <LikeButton track={track} artistTitle={artist?.title} />;
 }
 
+function FollowButton({ artist }: { artist: any }) {
+  const isFollowed = useLibraryStore((s) => s.isArtistFollowed(artist.id));
+  const toggle = useLibraryStore((s) => s.toggleFollowArtist);
+
+  const card = {
+    id: artist.id,
+    title: artist.title,
+    subtitle: artist.subtitle ?? "هنرمند",
+    cover: artist.cover ?? "",
+    type: "artist",
+  } as const;
+
+  const handle = () => {
+    toggle(card as any);
+    if (!isFollowed) {
+      toast.success("به کتابخانه اضافه شد.");
+    } else {
+      toast("از کتابخانه حذف شد.");
+    }
+  };
+
+  return (
+    <button
+      onClick={handle}
+      className={`px-6 py-2 rounded-full border transition-transform text-sm font-bold cursor-pointer`}>
+      {isFollowed ? "دنبال شده" : "دنبال کردن"}
+    </button>
+  );
+}
+
 export default function ArtistPage() {
   const params = useParams();
   const id = (params && (params as any).id) || "";
@@ -28,17 +58,33 @@ export default function ArtistPage() {
   // منطق دریافت هنرمند و محتوای مرتبط از TanStack Query
   const { data: artistData } = useArtist(id);
   const { data: homeData } = useHomeData();
-  const artist = artistData?.artist ?? homeData?.artists?.[0] ?? { id: "", title: "هنرمند", subtitle: "", cover: "/images/moein.jpg", type: "artist" };
+  const artist = artistData?.artist ??
+    homeData?.artists?.[0] ?? {
+      id: "",
+      title: "هنرمند",
+      subtitle: "",
+      cover: "/images/moein.jpg",
+      type: "artist",
+    };
   const [bioOpen, setBioOpen] = useState(false);
   const setTrack = usePlayerStore((s) => s.setTrack);
 
-  const popularTracks = (homeData?.albums ?? Array.from({ length: 5 })).map((alb, i) => ({
-    id: `${artist.id}-t${i + 1}`,
-    title: ["بی‌قرار", "شاید", "باران", "دل دیوانه", "خاطره‌ها"][i] ?? `قطعه ${i + 1}`,
-    plays: ["۶٬۴۶۳٬۶۰۴", "۳٬۲۷۱٬۵۱۰", "۲٬۳۷۱٬۵۶۳", "۲٬۵۲۱٬۰۵۶", "۸۰۹٬۰۷۸"][i] ?? "",
-    duration: [314, 345, 238, 379, 165][i] ?? 200,
-    cover: (homeData?.albums?.[i]?.cover) ?? (homeData?.albums?.[0]?.cover) ?? "/images/moein.jpg",
-  }));
+  const popularTracks = (homeData?.albums ?? Array.from({ length: 5 })).map(
+    (alb, i) => ({
+      id: `${artist.id}-t${i + 1}`,
+      title:
+        ["بی‌قرار", "شاید", "باران", "دل دیوانه", "خاطره‌ها"][i] ??
+        `قطعه ${i + 1}`,
+      plays:
+        ["۶٬۴۶۳٬۶۰۴", "۳٬۲۷۱٬۵۱۰", "۲٬۳۷۱٬۵۶۳", "۲٬۵۲۱٬۰۵۶", "۸۰۹٬۰۷۸"][i] ??
+        "",
+      duration: [314, 345, 238, 379, 165][i] ?? 200,
+      cover:
+        homeData?.albums?.[i]?.cover ??
+        homeData?.albums?.[0]?.cover ??
+        "/images/moein.jpg",
+    }),
+  );
 
   const artistBio = `${artist.title} از چهره‌های شناخته‌شده موسیقی فارسی است...`;
   const formatDuration = (sec: number) =>
@@ -124,9 +170,8 @@ export default function ArtistPage() {
                 <Play className="w-6 h-6 fill-current mr-0.5" />
               </motion.button>
 
-              <button className="px-6 py-2 rounded-full border border-border-strong text-text-primary hover:scale-105 transition-transform text-sm font-bold cursor-pointer">
-                دنبال کردن
-              </button>
+              {/* Follow button wired to library store */}
+              <FollowButton artist={artist} />
             </div>
           </div>
         </div>
@@ -151,8 +196,6 @@ export default function ArtistPage() {
                   </span>
                   <Play className="hidden group-hover:block w-4 h-4 fill-current" />
                 </button>
-
-                
 
                 {/* بخش اطلاعات آهنگ (باید در موبایل کل فضای باقی‌مانده را بگیرد) */}
                 <div className="flex items-center gap-3 min-w-0 overflow-hidden">

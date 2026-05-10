@@ -32,6 +32,15 @@ type LibraryState = {
   searchOpen: boolean;
   searchQuery: string;
   baseItems: Card[];
+  // followed artists and saved albums are represented by entries in `baseItems`
+  isArtistFollowed: (id: string) => boolean;
+  followArtist: (card: Card) => void;
+  unfollowArtist: (id: string) => void;
+  toggleFollowArtist: (card: Card) => void;
+  isAlbumSaved: (id: string) => boolean;
+  saveAlbum: (card: Card) => void;
+  unsaveAlbum: (id: string) => void;
+  toggleSaveAlbum: (card: Card) => void;
   customPlaylists: CustomPlaylist[];
   likedTracks: CustomTrack[];
   setMode: (m: SidebarMode) => void;
@@ -104,6 +113,35 @@ export const useLibraryStore = create<LibraryState>()(
           ),
         })),
 
+      // Base items manipulation (used to add followed artists / saved albums to sidebar)
+      isArtistFollowed: (id) => get().baseItems.some((i) => i.type === "artist" && i.id === id),
+      followArtist: (card) =>
+        set((s) => {
+          if (s.baseItems.some((i) => i.id === card.id)) return s;
+          return { baseItems: [card, ...s.baseItems] } as any;
+        }),
+      unfollowArtist: (id) =>
+        set((s) => ({ baseItems: s.baseItems.filter((i) => i.id !== id) })),
+      toggleFollowArtist: (card) => {
+        const exists = get().baseItems.some((i) => i.id === card.id && i.type === "artist");
+        if (exists) get().unfollowArtist(card.id);
+        else get().followArtist(card);
+      },
+
+      isAlbumSaved: (id) => get().baseItems.some((i) => i.type === "album" && i.id === id),
+      saveAlbum: (card) =>
+        set((s) => {
+          if (s.baseItems.some((i) => i.id === card.id)) return s;
+          return { baseItems: [card, ...s.baseItems] } as any;
+        }),
+      unsaveAlbum: (id) =>
+        set((s) => ({ baseItems: s.baseItems.filter((i) => i.id !== id) })),
+      toggleSaveAlbum: (card) => {
+        const exists = get().baseItems.some((i) => i.id === card.id && i.type === "album");
+        if (exists) get().unsaveAlbum(card.id);
+        else get().saveAlbum(card);
+      },
+
       isTrackLiked: (id) => get().likedTracks.some((t) => t.id === id),
       addLikedTrack: (track) => {
         set((s) => {
@@ -129,7 +167,7 @@ export const useLibraryStore = create<LibraryState>()(
     }),
     {
       name: "lovable-library",
-      partialize: (state) => ({ likedTracks: state.likedTracks, customPlaylists: state.customPlaylists }),
+      partialize: (state) => ({ likedTracks: state.likedTracks, customPlaylists: state.customPlaylists, baseItems: state.baseItems }),
     },
   ),
 );

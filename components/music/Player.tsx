@@ -19,27 +19,44 @@ import { useEffect, useState, useRef } from "react";
 import { usePlayerStore } from "../../store/player-store";
 import { useLibraryStore } from "../../store/library-store";
 import LikeButton from "./LikeButton";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 function MobileHeart({ track }: { track: any }) {
+  const router = useRouter();
   const liked = useLibraryStore((s) => s.likedTracks.some((x) => x.id === track.id));
   const toggleLikedTrack = useLibraryStore((s) => s.toggleLikedTrack);
 
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const willBeLiked = !liked;
+    toggleLikedTrack({
+      id: track.id,
+      title: track.title,
+      artist: track.artist ?? "",
+      album: track.album ?? "",
+      duration: String(track.duration ?? ""),
+    });
+
+    if (willBeLiked) {
+      toast.success("به اهنگ های لایک شده اضافه شد.", {
+        action: {
+          label: "بررسی",
+          onClick: () => router.push("/playlist/liked"),
+        },
+      });
+    } else {
+      toast("از اهنگ های لایک شده حذف شد.");
+    }
+  };
+
   return (
     <button
-      onClick={(e) => {
-        e.stopPropagation();
-        toggleLikedTrack({
-          id: track.id,
-          title: track.title,
-          artist: track.artist ?? "",
-          album: track.album ?? "",
-          duration: String(track.duration ?? ""),
-        });
-      }}
+      onClick={handleClick}
       className={`p-2 transition-colors ${liked ? "text-[var(--accent-gold)]" : "text-white/60 hover:text-white"}`}
       style={liked ? { color: "var(--accent-gold)" } : undefined}
     >
-      <Heart className={`w-5 h-5 fill-current ${liked ? "" : ""}`} />
+      <Heart className="w-5 h-5 fill-current" />
     </button>
   );
 }
@@ -119,6 +136,7 @@ export function Player() {
         <AnimatePresence>
           {!nowPlayingFullscreen && (
             <motion.footer
+              dir="ltr"
               initial={{ y: 100 }}
               animate={{ y: 0 }}
               exit={{ y: 100 }}
@@ -178,14 +196,14 @@ export function Player() {
               </motion.button>
 
               {/* Next button */}
-              <button
+              {/* <button
                 onClick={(e) => {
                   e.stopPropagation();
                   setProgress(0);
                 }}
                 className="p-1 text-white/80 hover:text-white transition-colors">
                 <SkipForward className="w-6 h-6" />
-              </button>
+              </button> */}
 
               {/* Progress bar at bottom of mini player */}
               <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-white/10">

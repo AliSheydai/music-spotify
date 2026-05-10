@@ -1,9 +1,10 @@
 import { motion } from "framer-motion";
-import { Play, Pause } from "lucide-react";
+import { Play, Pause, Plus, Check } from "lucide-react";
 import NextLink from "next/link";
 import { usePlayerStore } from "../../store/player-store";
 import type { Card } from "../../lib/mock-data";
 import Image from "next/image";
+import { useLibraryStore } from "../../store/library-store";
 
 export function MusicCard({ card }: { card: Card }) {
   const { hoveredCardId, setHoveredCard, isPlaying, togglePlay, track, setTrack } = usePlayerStore();
@@ -52,6 +53,10 @@ export function MusicCard({ card }: { card: Card }) {
             alt={card.title}
             className={`w-full aspect-square object-cover shadow-[var(--shadow-card)] ${isCircle ? "rounded-full" : "rounded-lg"}`}
           />
+            {/* Save album / follow controls */}
+            {card.type === "album" && (
+              <AlbumSaveButton card={card} />
+            )}
           {/* gradient overlay on hover */}
           <div className={`absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 ${isCircle ? "rounded-full" : "rounded-lg"}`} />
 
@@ -83,5 +88,25 @@ export function MusicCard({ card }: { card: Card }) {
         </p>
       </NextLink>
     </motion.div>
+  );
+}
+
+function AlbumSaveButton({ card }: { card: Card }) {
+  const isSaved = useLibraryStore((s) => s.isAlbumSaved(card.id));
+  const toggleSave = useLibraryStore((s) => s.toggleSaveAlbum);
+
+  const handle = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    toggleSave(card);
+  };
+
+  return (
+    <button
+      onClick={handle}
+      title={isSaved ? "ذخیره‌شده" : "ذخیره"}
+      className="absolute top-2 left-2 w-9 h-9 rounded-full bg-bg-elevated/80 backdrop-blur flex items-center justify-center text-text-secondary hover:text-text-primary transition-colors">
+      {isSaved ? <Check className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+    </button>
   );
 }
