@@ -55,3 +55,18 @@ export async function fetchCurrentTrack(): Promise<Track> {
   await new Promise((r) => setTimeout(r, 10));
   return currentTrack;
 }
+
+// Stub to sync liked tracks with a backend. Non-blocking and best-effort.
+export async function syncLikedTracks(tracks: unknown) {
+  try {
+    // Replace URL with real endpoint when available.
+    await fetch("/api/sync-liked", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(tracks),
+    });
+  } catch (e) {
+    // best-effort: ignore network errors locally
+    console.warn("syncLikedTracks failed:", e);
+  }
+}

@@ -21,6 +21,29 @@ import { usePlayerStore } from "@/store/player-store";
 import { useLibraryStore } from "@/store/library-store";
 import Image from "next/image";
 import Link from "next/link";
+import LikeButton from "@/components/music/LikeButton";
+
+function TrackLikeHeart({ track, artistTitle }: { track: any; artistTitle?: string }) {
+  const liked = useLibraryStore((s) => s.likedTracks.some((x) => x.id === track.id));
+  const toggleLikedTrack = useLibraryStore((s) => s.toggleLikedTrack);
+
+  return (
+    <button
+      onClick={(e) => {
+        e.stopPropagation();
+        toggleLikedTrack({
+          id: track.id,
+          title: track.title,
+          artist: artistTitle ?? track.artist ?? "",
+          album: track.album ?? "",
+          duration: String(track.duration ?? ""),
+        });
+      }}
+      className={`hidden md:flex w-8 h-8 items-center justify-center transition-colors ${liked ? "text-accent-emerald" : "text-text-secondary hover:text-text-primary"}`}>
+      <Heart className="w-4 h-4" />
+    </button>
+  );
+}
 
 // نمونه دیتا محلی برای زمانی که API داده‌ای برنگرداند
 const allPlaylists = [];
@@ -64,6 +87,7 @@ export default function PlaylistPage({ params }: Props) {
     renamePlaylist,
     addTrackToPlaylist,
   } = useLibraryStore();
+  const likedTracks = useLibraryStore((s) => s.likedTracks);
 
   const custom = customPlaylists.find((p) => p.id === id);
   const { data: playlistData } = usePlaylist(id);
@@ -72,7 +96,7 @@ export default function PlaylistPage({ params }: Props) {
 
   const fileRef = useRef<HTMLInputElement>(null);
   const [editing, setEditing] = useState(false);
-  const [showSearch, setShowSearch] = useState(custom?.tracks.length === 0);
+  const [showSearch, setShowSearch] = useState((custom?.tracks.length ?? 0) === 0 || (isLiked && likedTracks.length === 0));
   const [query, setQuery] = useState("");
 
   const title = custom
@@ -81,7 +105,7 @@ export default function PlaylistPage({ params }: Props) {
       ? "آهنگ‌های لایک شده"
       : (card?.title ?? "پلی‌لیست");
   const cover = custom?.cover ?? card?.cover;
-  const tracks = custom ? custom.tracks : sampleTracks;
+  const tracks = custom ? custom.tracks : isLiked ? likedTracks : sampleTracks;
 
   const handleCover = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -123,6 +147,7 @@ export default function PlaylistPage({ params }: Props) {
   const setTrack = usePlayerStore((s) => s.setTrack);
   const currentTrack = usePlayerStore((s) => s.track);
   const isPlaying = usePlayerStore((s) => s.isPlaying);
+  const toggleLikedTrack = useLibraryStore((s) => s.toggleLikedTrack);
 
   return (
     <AppShell>
@@ -228,7 +253,7 @@ export default function PlaylistPage({ params }: Props) {
         {/* Track list */}
         <div className="px-6">
           {tracks.length > 0 && (
-            <div className="hidden md:grid grid-cols-[24px_1fr_1fr_60px] gap-4 px-4 py-2 border-b border-border-default text-xs text-text-secondary uppercase">
+            <div className="hidden md:grid grid-cols-[24px_1fr_1fr_60px] gap-4 px-4 py-2 mb-4 border-b border-border-default text-xs text-text-secondary uppercase">
               <span>#</span>
               <span>عنوان</span>
               <span>آلبوم</span>
@@ -246,7 +271,7 @@ export default function PlaylistPage({ params }: Props) {
                 initial={{ opacity: 0, x: 10 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: i * 0.03 }}
-                className={`group grid grid-cols-[24px_1fr_1fr_60px] items-center gap-4 rounded-md w-full py-2 transition-colors cursor-pointer`}
+                className={`group md:grid md:grid-cols-[24px_minmax(0,1fr)_minmax(0,1fr)_60px] flex items-center justify-between gap-4 rounded-sm w-full py-2 cursor-pointer hover:bg-bg-elevated`}
                 onClick={() =>
                     setTrack({
                       id: t.id,
@@ -259,9 +284,9 @@ export default function PlaylistPage({ params }: Props) {
                 <button
                   onClick={() =>
                     setTrack({
-                        ...(t as any),
-                        artist: (t as any).artist ?? artist?.title ?? "",
-                      })
+                      ...(t as any),
+                      artist: (t as any).artist ?? artist?.title ?? "",
+                    })
                   }
                   className="hidden md:flex w-8 h-8 items-center justify-center text-text-secondary hover:text-text-primary">
                   <span className="group-hover:hidden text-sm tabular-nums">
@@ -290,14 +315,15 @@ export default function PlaylistPage({ params }: Props) {
                   {plays ?? (t as any).album}
                 </div>
 
-                <div className="flex items-center justify-end gap-2 md:gap-4 text-text-secondary">
-                  <button className="hidden md:block opacity-0 group-hover:opacity-100 hover:text-text-primary transition-opacity">
-                    <Plus className="w-4 h-4" />
-                  </button>
+                <div className="flex items-center justify-end gap-2 md:gap-4 text-text-secondary md:ml-2">
+                  <div className="hidden md:block opacity-0 group-hover:opacity-100 transition-opacity">
+                    {/* Like/Add to liked songs button for this track */}
+                    <LikeButton track={t} artistTitle={artist?.title} />
+                  </div>
                   <span className="text-sm tabular-nums max-md:hidden">
                     {formatDuration((t as any).duration)}
                   </span>
-                  <button className="md:opacity-0 md:group-hover:opacity-100 hover:text-text-primary transition-opacity">
+                  <button className="opacity-90 hover:text-text-primary transition-opacity">
                     <MoreHorizontal className="w-4 h-4" />
                   </button>
                 </div>

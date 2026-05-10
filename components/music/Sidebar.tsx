@@ -77,6 +77,7 @@ export function Sidebar() {
     customPlaylists,
     createPlaylist,
   } = useLibraryStore();
+  const likedCount = useLibraryStore((s) => s.likedTracks.length);
   const [sortOpen, setSortOpen] = useState(false);
 
   const collapsed = sidebarMode === "collapsed";
@@ -91,7 +92,7 @@ export function Sidebar() {
   const likedCard: Card = {
     id: "liked",
     title: "آهنگ‌های لایک شده",
-    subtitle: "پلی‌لیست • ۱۲۴ آهنگ",
+    subtitle: `پلی‌لیست • ${likedCount} آهنگ`,
     cover: "",
     type: "playlist",
   };

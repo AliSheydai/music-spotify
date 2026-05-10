@@ -2,6 +2,7 @@ import { Sidebar } from "./Sidebar";
 import { Topbar } from "./Topbar";
 import { Player } from "./Player";
 import { NowPlayingPanel } from "./NowPlayingPanel";
+import { Toaster } from "@/components/ui/sonner";
 import { motion } from "framer-motion";
 import { usePlayerStore } from "../../store/player-store";
 import { useLibraryStore } from "../../store/library-store";
@@ -80,6 +81,7 @@ export function AppShell({
       </div>
 
       <Player />
+      <Toaster />
     </div>
   );
 }

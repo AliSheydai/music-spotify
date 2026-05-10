@@ -2,6 +2,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Play, Pause, SkipBack, SkipForward, Shuffle, Repeat, Volume2, VolumeX, Volume1, Heart, ListMusic, Mic2, Maximize2, ChevronDown } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 import { usePlayerStore } from "../../store/player-store";
+import LikeButton from "./LikeButton";
 
 function fmt(sec: number) {
   const m = Math.floor(sec / 60);
@@ -27,7 +28,6 @@ export function Player() {
   const nowPlayingFullscreen = usePlayerStore((s) => s.nowPlayingFullscreen);
   const toggleNowPlayingFullscreen = usePlayerStore((s) => s.toggleNowPlayingFullscreen);
 
-  const [liked, setLiked] = useState(false);
   const [shuffle, setShuffle] = useState(false);
   const [repeat, setRepeat] = useState<"off" | "all" | "one">("off");
   const [prevVolume, setPrevVolume] = useState(volume);
@@ -89,12 +89,9 @@ export function Player() {
               </div>
 
               {/* Like button */}
-              <button
-                onClick={(e) => { e.stopPropagation(); setLiked((l) => !l); }}
-                className="p-2 text-white/60 hover:text-white transition-colors"
-              >
-                <Heart className={`w-5 h-5 transition-colors ${liked ? "fill-[#1DB954] text-[#1DB954]" : ""}`} />
-              </button>
+              <div className="p-2">
+                <LikeButton track={track} artistTitle={track.artist} className="text-white/60" />
+              </div>
 
               {/* Play/Pause button */}
               <motion.button
@@ -183,13 +180,9 @@ export function Player() {
                   <div className="text-xl font-bold text-white truncate">{track.title}</div>
                   <div className="text-sm text-white/60 truncate mt-0.5">{track.artist}</div>
                 </div>
-                <motion.button
-                  onClick={() => setLiked((l) => !l)}
-                  whileTap={{ scale: 0.8 }}
-                  className="ml-4 flex-shrink-0"
-                >
-                  <Heart className={`w-6 h-6 transition-all duration-200 ${liked ? "fill-[#1DB954] text-[#1DB954]" : "text-white/50 hover:text-white"}`} />
-                </motion.button>
+                <div className="ml-4 flex-shrink-0">
+                  <LikeButton track={track} artistTitle={track.artist} className="text-white/50" />
+                </div>
               </div>
 
               {/* Progress */}
@@ -305,13 +298,9 @@ export function Player() {
           <div className="text-sm font-medium text-text-primary truncate hover:underline cursor-pointer">{track.title}</div>
           <div className="text-xs text-text-secondary truncate hover:underline cursor-pointer">{track.artist}</div>
         </div>
-        <motion.button
-          onClick={() => setLiked((l) => !l)}
-          whileTap={{ scale: 0.8 }}
-          className={`transition-colors flex-shrink-0 ${liked ? "text-accent-rose" : "text-text-secondary hover:text-accent-rose"}`}
-        >
-          <Heart className={`w-4 h-4 ${liked ? "fill-current" : ""}`} />
-        </motion.button>
+        <div className="flex-shrink-0">
+          <LikeButton track={track} artistTitle={track.artist} className="text-text-secondary hover:text-accent-rose" />
+        </div>
       </div>
 
       {/* Controls */}

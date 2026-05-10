@@ -1,17 +1,26 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 import { useParams } from "next/navigation";
 import { Play, BadgeCheck, MoreHorizontal, Plus, X } from "lucide-react";
 import { AppShell } from "@/components/music/AppShell";
 import { SectionRow } from "@/components/music/SectionRow";
 import { useArtist, useHomeData } from "@/lib/hooks";
+import { useLibraryStore } from "@/store/library-store";
 import { usePlayerStore } from "@/store/player-store";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
 // در Next.js پارامترها به این صورت دریافت می‌شوند
+import LikeButton from "@/components/music/LikeButton";
+
+function ArtistTrackLikeButton({ track, artist }: { track: any; artist: any }) {
+  return <LikeButton track={track} artistTitle={artist?.title} />;
+}
+
 export default function ArtistPage() {
   const params = useParams();
   const id = (params && (params as any).id) || "";
@@ -143,6 +152,8 @@ export default function ArtistPage() {
                   <Play className="hidden group-hover:block w-4 h-4 fill-current" />
                 </button>
 
+                
+
                 {/* بخش اطلاعات آهنگ (باید در موبایل کل فضای باقی‌مانده را بگیرد) */}
                 <div className="flex items-center gap-3 min-w-0 overflow-hidden">
                   <img
@@ -168,7 +179,8 @@ export default function ArtistPage() {
                 {/* بخش زمان و دکمه‌های کنترلی */}
                 <div className="flex items-center justify-end gap-2 md:gap-4 text-text-secondary">
                   <button className="hidden md:block opacity-0 group-hover:opacity-100 hover:text-text-primary transition-opacity">
-                    <Plus className="w-4 h-4" />
+                    {/* like button */}
+                    <ArtistTrackLikeButton track={track} artist={artist} />
                   </button>
                   <span className="text-sm tabular-nums">
                     {formatDuration(track.duration)}

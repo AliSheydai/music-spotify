@@ -1,9 +1,12 @@
+"use client";
+
 import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
 import { X, Maximize2, Minimize2, MoreHorizontal, Share2, Plus, BadgeCheck, ChevronRight, Music2 } from "lucide-react";
 import { useRef } from "react";
 import { usePlayerStore } from "../../store/player-store";
 import { useHomeData } from "@/lib/hooks";
 import Image from "next/image";
+import LikeButton from "./LikeButton";
 
 export function NowPlayingPanel() {
   const open = usePlayerStore((s) => s.nowPlayingOpen);
@@ -137,7 +140,9 @@ function PanelBody({ track, fullscreen }: { track: { title: string; artist: stri
             <Share2 className="w-4 h-4" />
           </button>
           <button className="w-8 h-8 rounded-full hover:bg-bg-elevated flex items-center justify-center hover:text-text-primary transition-colors">
-            <Plus className="w-4 h-4" />
+            <div className="p-2">
+                            <LikeButton track={track} artistTitle={track.artist} className="text-white/60" />
+                          </div>
           </button>
         </div>
       </div>
@@ -223,6 +228,7 @@ function FullscreenView({
   onFs: () => void;
 }) {
   const ref = useRef<HTMLDivElement>(null);
+  const { data } = useHomeData();
   const { scrollY } = useScroll({ container: ref });
   const coverOpacity = useTransform(scrollY, [0, 300], [1, 0.15]);
   const coverScale = useTransform(scrollY, [0, 300], [1, 0.85]);
@@ -299,10 +305,10 @@ function FullscreenView({
                 <button className="text-xs text-text-secondary hover:underline">باز کردن صف</button>
               </div>
               <div className="flex items-center gap-3">
-                <img src={albumCards[0].cover} alt="" className="w-12 h-12 rounded-md object-cover" />
+                <img src={data?.albums?.[0]?.cover ?? "/images/moein.jpg"} alt="" className="w-12 h-12 rounded-md object-cover" />
                 <div className="min-w-0">
-                  <div className="text-sm font-medium truncate">{albumCards[0].title}</div>
-                  <div className="text-xs text-text-secondary truncate">{albumCards[0].subtitle}</div>
+                  <div className="text-sm font-medium truncate">{data?.albums?.[0]?.title ?? ""}</div>
+                  <div className="text-xs text-text-secondary truncate">{data?.albums?.[0]?.subtitle ?? ""}</div>
                 </div>
               </div>
             </div>
