@@ -14,7 +14,7 @@ export default function HomePage() {
       <SearchHero />
 
       {/* Filters */}
-      <div className="flex items-center gap-2 mb-6 mt-8 md:px-8 md:pt-6 md:pb-10 px-4 pt-2 pb-4">
+      <div className="flex items-center gap-2 mb-6 mt-8 md:px-4 xl:px-5 md:pt-6 md:pb-10 px-2.5 pt-2 pb-4">
         {filters.map((f, i) => (
           <button
             key={f}
@@ -33,13 +33,13 @@ export default function HomePage() {
         initial={{ opacity: 0, y: 16 }} 
         animate={{ opacity: 1, y: 0 }} 
         transition={{ duration: 0.4 }}
-        className="md:px-6 md:pt-4 md:pb-8 px-4 pt-2 pb-4"
+        className="md:px-4 xl:px-5 md:pt-4 md:pb-8 px-2.5 pt-2 pb-6"
       >
-        <SectionRow title="پیشنهاد ویژه برای شما" cards={featuredCards} />
-        <SectionRow title="رادیوهای محبوب" cards={radioCards} />
-        <SectionRow title="آلبوم‌ها و تک‌آهنگ‌ها" cards={albumCards} />
-        <SectionRow title="هنرمندان محبوب" cards={artistCards} />
-        <SectionRow title="پلی‌لیست‌های پیشنهادی 🔥" cards={playlistCards} />
+        <SectionRow title="پیشنهاد ویژه برای شما" isShowAll={true} cards={featuredCards} />
+        <SectionRow title="رادیوهای محبوب" isShowAll={true} cards={radioCards} />
+        <SectionRow title="آلبوم‌ها و تک‌آهنگ‌ها" isShowAll={true} cards={albumCards} />
+        <SectionRow title="هنرمندان محبوب" isShowAll={true} cards={artistCards} />
+        <SectionRow title="پلی‌لیست‌های پیشنهادی 🔥" isShowAll={true} cards={playlistCards} />
       </motion.div>
     </AppShell>
   );

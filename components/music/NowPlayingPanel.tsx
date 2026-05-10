@@ -44,7 +44,7 @@ export function NowPlayingPanel() {
           animate={{ width: 360, opacity: 1 }}
           exit={{ width: 0, opacity: 0 }}
           transition={{ duration: 0.3, ease: "easeOut" }}
-          className="shrink-0 overflow-hidden"
+          className="shrink-0 overflow-hidden hidden md:flex"
         >
           <div className="h-full w-[360px] rounded-xl bg-bg-surface flex flex-col">
             <PanelHeader onClose={() => setOpen(false)} onFs={toggleFs} fullscreen={false} />
@@ -62,7 +62,7 @@ export function NowPlayingPanel() {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.25 }}
-          className="absolute inset-0 z-20 rounded-xl overflow-hidden"
+          className="absolute inset-0 z-20 rounded-xl overflow-hidden hidden md:block"
           style={{
             background: `radial-gradient(120% 80% at 50% 0%, rgba(220,38,38,0.55), rgba(10,10,15,1) 60%)`,
           }}

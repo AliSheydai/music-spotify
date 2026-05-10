@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { MusicCard } from "./MusicCard";
 import type { Card } from "@/lib/mock-data";
 
-export function SectionRow({ title, cards }: { title: string; cards: Card[] }) {
+export function SectionRow({ title, cards, isShowAll=true }: { title: string; isShowAll:boolean; cards: Card[] }) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   return (
@@ -12,9 +12,11 @@ export function SectionRow({ title, cards }: { title: string; cards: Card[] }) {
         <h2 className="text-xl md:text-2xl font-bold text-text-primary hover:underline cursor-pointer">
           {title}
         </h2>
-        <button className="text-xs font-bold text-text-secondary hover:text-text-primary hover:underline">
+        {isShowAll && (
+          <button className="text-xs font-bold text-text-secondary hover:text-text-primary hover:underline">
           نمایش همه
         </button>
+        )}
       </div>
 
       <motion.div

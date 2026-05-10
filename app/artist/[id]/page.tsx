@@ -74,7 +74,7 @@ export default function ArtistPage() {
         key={artist.id}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="-mx-6 md:-mx-10 -mt-4"
+        className="-mx-6 md:-mx-10 -mt-4 px-2"
         style={{
           background: `linear-gradient(180deg, ${tint} 0%, ${tintSoft} 360px, var(--bg-surface) 720px)`,
         }}>
@@ -87,7 +87,7 @@ export default function ArtistPage() {
 
         {/* Hero */}
         <div
-          className="relative flex flex-col items-center md:flex-row md:items-end p-8 pb-4 min-h-[480px] md:h-[340px] overflow-hidden transition-all"
+          className="relative flex flex-col items-center md:flex-row md:items-end p-4 pb-4 min-h-[480px] md:h-[340px] overflow-hidden transition-all"
           style={{ backgroundColor: tintSoft }} // رنگ اصلی هنرمند در پس‌زمینه موبایل
         >
           {/* پس‌زمینه مخصوص دسکتاپ (Banner Mode) - در موبایل مخفی است */}
@@ -183,7 +183,7 @@ export default function ArtistPage() {
                       {track.title}
                     </div>
                     <div className="text-xs text-text-secondary truncate">
-                      {artist.title}
+                      {track.plays}
                     </div>
                   </div>
                 </div>
@@ -243,13 +243,15 @@ export default function ArtistPage() {
         <div className="px-6">
           <SectionRow
             title="آلبوم‌ها و تک‌آهنگ‌ها"
+            isShowAll={false}
             cards={albumCards.slice().reverse()}
           />
           <SectionRow
             title="طرفداران همچنین گوش می‌دهند"
+            isShowAll={false}
             cards={artistCards.filter((a) => a.id !== id)}
           />
-          <SectionRow title="بر اساس این هنرمند" cards={playlistCards} />
+          <SectionRow title="بر اساس این هنرمند" isShowAll={false} cards={playlistCards} />
         </div>
       </motion.div>
 
