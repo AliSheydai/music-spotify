@@ -1,8 +1,48 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { Play, Pause, SkipBack, SkipForward, Shuffle, Repeat, Volume2, VolumeX, Volume1, Heart, ListMusic, Mic2, Maximize2, ChevronDown } from "lucide-react";
+import {
+  Play,
+  Pause,
+  SkipBack,
+  SkipForward,
+  Shuffle,
+  Repeat,
+  Volume2,
+  VolumeX,
+  Volume1,
+  Heart,
+  ListMusic,
+  Mic2,
+  Maximize2,
+  ChevronDown,
+} from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 import { usePlayerStore } from "../../store/player-store";
+import { useLibraryStore } from "../../store/library-store";
 import LikeButton from "./LikeButton";
+
+function MobileHeart({ track }: { track: any }) {
+  const liked = useLibraryStore((s) => s.likedTracks.some((x) => x.id === track.id));
+  const toggleLikedTrack = useLibraryStore((s) => s.toggleLikedTrack);
+
+  return (
+    <button
+      onClick={(e) => {
+        e.stopPropagation();
+        toggleLikedTrack({
+          id: track.id,
+          title: track.title,
+          artist: track.artist ?? "",
+          album: track.album ?? "",
+          duration: String(track.duration ?? ""),
+        });
+      }}
+      className={`p-2 transition-colors ${liked ? "text-[var(--accent-gold)]" : "text-white/60 hover:text-white"}`}
+      style={liked ? { color: "var(--accent-gold)" } : undefined}
+    >
+      <Heart className={`w-5 h-5 fill-current ${liked ? "" : ""}`} />
+    </button>
+  );
+}
 
 function fmt(sec: number) {
   const m = Math.floor(sec / 60);
@@ -22,11 +62,21 @@ function useIsMobile() {
 }
 
 export function Player() {
-  const { track, isPlaying, togglePlay, progress, setProgress, volume, setVolume } = usePlayerStore();
+  const {
+    track,
+    isPlaying,
+    togglePlay,
+    progress,
+    setProgress,
+    volume,
+    setVolume,
+  } = usePlayerStore();
   const toggleNowPlaying = usePlayerStore((s) => s.toggleNowPlaying);
   const nowPlayingOpen = usePlayerStore((s) => s.nowPlayingOpen);
   const nowPlayingFullscreen = usePlayerStore((s) => s.nowPlayingFullscreen);
-  const toggleNowPlayingFullscreen = usePlayerStore((s) => s.toggleNowPlayingFullscreen);
+  const toggleNowPlayingFullscreen = usePlayerStore(
+    (s) => s.toggleNowPlayingFullscreen,
+  );
 
   const [shuffle, setShuffle] = useState(false);
   const [repeat, setRepeat] = useState<"off" | "all" | "one">("off");
@@ -73,8 +123,7 @@ export function Player() {
               animate={{ y: 0 }}
               exit={{ y: 100 }}
               onClick={toggleNowPlayingFullscreen}
-              className="fixed bottom-[64px] left-0 right-0 z-50 md:hidden h-[64px] shrink-0 bg-[#1a1a1a] border-t rounded-xl border-white/10 px-3 mx-2 flex items-center gap-3 cursor-pointer active:bg-white/5 transition-colors"
-            >
+              className="fixed bottom-[64px] left-0 right-0 z-50 md:hidden h-[64px] shrink-0 bg-[#1a1a1a] border-t rounded-xl border-white/10 px-3 mx-2 flex items-center gap-3 cursor-pointer active:bg-white/5 transition-colors">
               <motion.img
                 key={track.cover}
                 initial={{ scale: 0.9, opacity: 0 }}
@@ -84,28 +133,44 @@ export function Player() {
                 className="w-12 h-12 rounded-md object-cover flex-shrink-0"
               />
               <div className="flex-1 min-w-0">
-                <div className="text-sm font-medium text-white truncate">{track.title}</div>
-                <div className="text-xs text-white/60 truncate">{track.artist}</div>
+                <div className="text-sm font-medium text-white truncate">
+                  {track.title}
+                </div>
+                <div className="text-xs text-white/60 truncate">
+                  {track.artist}
+                </div>
               </div>
 
-              {/* Like button */}
-              <div className="p-2">
-                <LikeButton track={track} artistTitle={track.artist} className="text-white/60" />
+              {/* Like button (mobile heart) */}
+              <div className="p-0">
+                <MobileHeart track={track} />
               </div>
 
               {/* Play/Pause button */}
               <motion.button
-                onClick={(e) => { e.stopPropagation(); togglePlay(); }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  togglePlay();
+                }}
                 whileTap={{ scale: 0.9 }}
-                className="p-1 text-white"
-              >
+                className="p-1 text-white">
                 <AnimatePresence mode="wait" initial={false}>
                   {isPlaying ? (
-                    <motion.div key="pause" initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }} transition={{ duration: 0.12 }}>
+                    <motion.div
+                      key="pause"
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      exit={{ scale: 0 }}
+                      transition={{ duration: 0.12 }}>
                       <Pause className="w-7 h-7 fill-white" />
                     </motion.div>
                   ) : (
-                    <motion.div key="play" initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }} transition={{ duration: 0.12 }}>
+                    <motion.div
+                      key="play"
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      exit={{ scale: 0 }}
+                      transition={{ duration: 0.12 }}>
                       <Play className="w-7 h-7 fill-white ml-0.5" />
                     </motion.div>
                   )}
@@ -114,9 +179,11 @@ export function Player() {
 
               {/* Next button */}
               <button
-                onClick={(e) => { e.stopPropagation(); setProgress(0); }}
-                className="p-1 text-white/80 hover:text-white transition-colors"
-              >
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setProgress(0);
+                }}
+                className="p-1 text-white/80 hover:text-white transition-colors">
                 <SkipForward className="w-6 h-6" />
               </button>
 
@@ -140,28 +207,38 @@ export function Player() {
               exit={{ y: "100%" }}
               transition={{ type: "spring", damping: 30, stiffness: 300 }}
               className="fixed inset-0 z-50 flex flex-col"
-              style={{ background: "linear-gradient(180deg, #4a2020 0%, #1a0a0a 40%, #121212 100%)" }}
-            >
+              style={{
+                background:
+                  "linear-gradient(180deg, #4a2020 0%, #1a0a0a 40%, #121212 100%)",
+              }}>
               {/* Top bar */}
-              <div className="flex items-center justify-between px-4 pt-12 pb-4">
+              <div className="flex items-center justify-between px-4 pt-6 pb-4">
                 <button
                   onClick={toggleNowPlayingFullscreen}
-                  className="text-white/70 hover:text-white transition-colors"
-                >
+                  className="text-white/70 hover:text-white transition-colors">
                   <ChevronDown className="w-7 h-7" />
                 </button>
                 <div className="text-center">
-                  <div className="text-xs text-white/50 uppercase tracking-widest">در حال پخش</div>
+                  <div className="text-xs text-white/50 uppercase tracking-widest">
+                    در حال پخش
+                  </div>
                 </div>
                 <button className="text-white/70 hover:text-white transition-colors">
-                  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <circle cx="12" cy="5" r="1" fill="currentColor" /><circle cx="12" cy="12" r="1" fill="currentColor" /><circle cx="12" cy="19" r="1" fill="currentColor" />
+                  <svg
+                    className="w-5 h-5"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2">
+                    <circle cx="12" cy="5" r="1" fill="currentColor" />
+                    <circle cx="12" cy="12" r="1" fill="currentColor" />
+                    <circle cx="12" cy="19" r="1" fill="currentColor" />
                   </svg>
                 </button>
               </div>
 
               {/* Album Art */}
-              <div className="flex-1 flex items-center justify-center px-8 py-4">
+              <div className="flex-1 flex items-center justify-center -mx-3 py-4">
                 <motion.img
                   key={track.cover}
                   initial={{ scale: 0.85, opacity: 0 }}
@@ -169,25 +246,33 @@ export function Player() {
                   transition={{ duration: 0.4, ease: "easeOut" }}
                   src={track.cover}
                   alt={track.title}
-                  className="w-full max-w-[300px] aspect-square rounded-lg object-cover shadow-2xl"
+                  className="w-full aspect-square object-cover shadow-2xl"
                   style={{ boxShadow: "0 24px 80px rgba(0,0,0,0.8)" }}
                 />
               </div>
 
               {/* Track info + like */}
-              <div className="px-6 pb-4 flex items-center justify-between">
-                <div className="min-w-0 flex-1">
-                  <div className="text-xl font-bold text-white truncate">{track.title}</div>
-                  <div className="text-sm text-white/60 truncate mt-0.5">{track.artist}</div>
+              <div className="px-2 pb-10 flex items-center justify-between">
+                <div className="flex-1 min-w-0 pr-4">
+                  <div className="text-base font-bold text-white truncate block">
+                    {track.title || ""}
+                  </div>
+                  <div className="text-sm text-white/70 truncate block">
+                    {track.artist || ""}
+                  </div>
                 </div>
-                <div className="ml-4 flex-shrink-0">
-                  <LikeButton track={track} artistTitle={track.artist} className="text-white/50" />
+                <div className="ml-3 flex-shrink-0 z-10">
+                  <MobileHeart track={track} />
                 </div>
               </div>
 
               {/* Progress */}
               <div className="px-6 pb-4">
-                <ProgressSlider value={progress} onChange={setProgress} accent />
+                <ProgressSlider
+                  value={progress}
+                  onChange={setProgress}
+                  accent
+                />
                 <div className="flex justify-between mt-1.5 text-[11px] text-white/40 tabular-nums">
                   <span>{fmt(current)}</span>
                   <span>{fmt(track.duration)}</span>
@@ -199,33 +284,40 @@ export function Player() {
                 <motion.button
                   whileTap={{ scale: 0.85 }}
                   onClick={() => setShuffle((s) => !s)}
-                  className={`transition-colors ${shuffle ? "text-[#1DB954]" : "text-white/60 hover:text-white"}`}
-                >
+                  className={`transition-colors ${shuffle ? "text-[#1DB954]" : "text-white/60 hover:text-white"}`}>
                   <Shuffle className="w-5 h-5" />
                 </motion.button>
 
                 <motion.button
                   whileTap={{ scale: 0.85 }}
                   onClick={() => setProgress(0)}
-                  className="text-white hover:text-white/80 transition-colors"
-                >
-                  <SkipBack className="w-7 h-7" />
+                  className="text-white hover:text-white/80 transition-colors">
+                  <SkipForward className="w-7 h-7" />
                 </motion.button>
 
                 <motion.button
                   onClick={togglePlay}
                   whileTap={{ scale: 0.92 }}
                   whileHover={{ scale: 1.04 }}
-                  className="w-16 h-16 rounded-full bg-white text-black flex items-center justify-center shadow-lg"
-                >
+                  className="w-14 h-14 rounded-full bg-white text-black flex items-center justify-center shadow-lg">
                   <AnimatePresence mode="wait" initial={false}>
                     {isPlaying ? (
-                      <motion.div key="pause" initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }} transition={{ duration: 0.12 }}>
-                        <Pause className="w-7 h-7 fill-black" />
+                      <motion.div
+                        key="pause"
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        exit={{ scale: 0 }}
+                        transition={{ duration: 0.12 }}>
+                        <Pause className="w-6 h-6 fill-black" />
                       </motion.div>
                     ) : (
-                      <motion.div key="play" initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }} transition={{ duration: 0.12 }}>
-                        <Play className="w-7 h-7 fill-black ml-0.5" />
+                      <motion.div
+                        key="play"
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        exit={{ scale: 0 }}
+                        transition={{ duration: 0.12 }}>
+                        <Play className="w-6 h-6 fill-black ml-0.5" />
                       </motion.div>
                     )}
                   </AnimatePresence>
@@ -234,25 +326,25 @@ export function Player() {
                 <motion.button
                   whileTap={{ scale: 0.85 }}
                   onClick={() => setProgress(0)}
-                  className="text-white hover:text-white/80 transition-colors"
-                >
-                  <SkipForward className="w-7 h-7" />
+                  className="text-white hover:text-white/80 transition-colors">
+                  <SkipBack className="w-7 h-7" />
                 </motion.button>
 
                 <motion.button
                   whileTap={{ scale: 0.85 }}
                   onClick={handleRepeat}
-                  className={`transition-colors relative ${repeat !== "off" ? "text-[#1DB954]" : "text-white/60 hover:text-white"}`}
-                >
+                  className={`transition-colors relative ${repeat !== "off" ? "text-[#1DB954]" : "text-white/60 hover:text-white"}`}>
                   <Repeat className="w-5 h-5" />
                   {repeat === "one" && (
-                    <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 text-[8px] font-bold text-[#1DB954]">1</span>
+                    <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 text-[8px] font-bold text-[#1DB954]">
+                      1
+                    </span>
                   )}
                 </motion.button>
               </div>
 
               {/* Volume + extra controls */}
-              <div className="px-6 pb-10 flex items-center gap-3">
+              {/* <div className="px-6 pb-10 flex items-center gap-3">
                 <button onClick={handleMuteToggle} className="text-white/50 hover:text-white transition-colors">
                   <VolumeIcon className="w-4 h-4" />
                 </button>
@@ -262,15 +354,16 @@ export function Player() {
                 <button className="text-white/50 hover:text-white transition-colors ml-1">
                   <Volume2 className="w-4 h-4" />
                 </button>
-              </div>
+              </div> */}
 
               {/* Bottom icons */}
-              <div className="px-8 pb-10 flex items-center justify-between">
-                <button className="text-white/50 hover:text-white transition-colors"><Mic2 className="w-5 h-5" /></button>
+              <div className="px-4 pb-4 flex items-center justify-between">
+                <button className="text-white/50 hover:text-white transition-colors">
+                  <Mic2 className="w-5 h-5" />
+                </button>
                 <button
                   onClick={toggleNowPlaying}
-                  className={`hover:text-white transition-colors ${nowPlayingOpen ? "text-[#1DB954]" : "text-white/50"}`}
-                >
+                  className={`hover:text-white transition-colors ${nowPlayingOpen ? "text-[#1DB954]" : "text-white/50"}`}>
                   <ListMusic className="w-5 h-5" />
                 </button>
               </div>
@@ -295,11 +388,19 @@ export function Player() {
           className="w-14 h-14 rounded-md object-cover"
         />
         <div className="min-w-0">
-          <div className="text-sm font-medium text-text-primary truncate hover:underline cursor-pointer">{track.title}</div>
-          <div className="text-xs text-text-secondary truncate hover:underline cursor-pointer">{track.artist}</div>
+          <div className="text-sm font-medium text-text-primary truncate hover:underline cursor-pointer">
+            {track.title}
+          </div>
+          <div className="text-xs text-text-secondary truncate hover:underline cursor-pointer">
+            {track.artist}
+          </div>
         </div>
         <div className="flex-shrink-0">
-          <LikeButton track={track} artistTitle={track.artist} className="text-text-secondary hover:text-accent-rose" />
+          <LikeButton
+            track={track}
+            artistTitle={track.artist}
+            className="text-text-secondary hover:text-accent-rose"
+          />
         </div>
       </div>
 
@@ -309,16 +410,16 @@ export function Player() {
           <motion.button
             whileTap={{ scale: 0.85 }}
             onClick={() => setShuffle((s) => !s)}
-            className={`transition-colors ${shuffle ? "text-accent-gold" : "text-text-secondary hover:text-text-primary"}`}
-          >
+            className={`transition-colors ${shuffle ? "text-accent-gold" : "text-text-secondary hover:text-text-primary"}`}>
             <Shuffle className="w-4 h-4" />
           </motion.button>
 
           <motion.button
             whileTap={{ scale: 0.85 }}
-            onClick={() => setProgress(Math.max(0, progress - 1 / track.duration * 10))}
-            className="text-text-secondary hover:text-text-primary transition-colors"
-          >
+            onClick={() =>
+              setProgress(Math.max(0, progress - (1 / track.duration) * 10))
+            }
+            className="text-text-secondary hover:text-text-primary transition-colors">
             <SkipBack className="w-5 h-5" />
           </motion.button>
 
@@ -326,15 +427,24 @@ export function Player() {
             onClick={togglePlay}
             whileTap={{ scale: 0.9 }}
             whileHover={{ scale: 1.06 }}
-            className="w-9 h-9 rounded-full bg-text-primary text-bg-base flex items-center justify-center"
-          >
+            className="w-9 h-9 rounded-full bg-text-primary text-bg-base flex items-center justify-center">
             <AnimatePresence mode="wait" initial={false}>
               {isPlaying ? (
-                <motion.div key="pause" initial={{ scale: 0, rotate: -90 }} animate={{ scale: 1, rotate: 0 }} exit={{ scale: 0, rotate: 90 }} transition={{ duration: 0.15 }}>
+                <motion.div
+                  key="pause"
+                  initial={{ scale: 0, rotate: -90 }}
+                  animate={{ scale: 1, rotate: 0 }}
+                  exit={{ scale: 0, rotate: 90 }}
+                  transition={{ duration: 0.15 }}>
                   <Pause className="w-4 h-4 fill-current" />
                 </motion.div>
               ) : (
-                <motion.div key="play" initial={{ scale: 0, rotate: -90 }} animate={{ scale: 1, rotate: 0 }} exit={{ scale: 0, rotate: 90 }} transition={{ duration: 0.15 }}>
+                <motion.div
+                  key="play"
+                  initial={{ scale: 0, rotate: -90 }}
+                  animate={{ scale: 1, rotate: 0 }}
+                  exit={{ scale: 0, rotate: 90 }}
+                  transition={{ duration: 0.15 }}>
                   <Play className="w-4 h-4 fill-current mr-0.5" />
                 </motion.div>
               )}
@@ -343,20 +453,22 @@ export function Player() {
 
           <motion.button
             whileTap={{ scale: 0.85 }}
-            onClick={() => setProgress(Math.min(1, progress + 1 / track.duration * 10))}
-            className="text-text-secondary hover:text-text-primary transition-colors"
-          >
+            onClick={() =>
+              setProgress(Math.min(1, progress + (1 / track.duration) * 10))
+            }
+            className="text-text-secondary hover:text-text-primary transition-colors">
             <SkipForward className="w-5 h-5" />
           </motion.button>
 
           <motion.button
             whileTap={{ scale: 0.85 }}
             onClick={handleRepeat}
-            className={`transition-colors relative ${repeat !== "off" ? "text-accent-gold" : "text-text-secondary hover:text-text-primary"}`}
-          >
+            className={`transition-colors relative ${repeat !== "off" ? "text-accent-gold" : "text-text-secondary hover:text-text-primary"}`}>
             <Repeat className="w-4 h-4" />
             {repeat === "one" && (
-              <span className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 text-[8px] font-bold text-accent-gold">1</span>
+              <span className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 text-[8px] font-bold text-accent-gold">
+                1
+              </span>
             )}
           </motion.button>
         </div>
@@ -376,11 +488,12 @@ export function Player() {
         <button
           onClick={toggleNowPlaying}
           className={`hover:text-text-primary transition-colors ${nowPlayingOpen ? "text-accent-gold" : ""}`}
-          title="در حال پخش"
-        >
+          title="در حال پخش">
           <ListMusic className="w-4 h-4" />
         </button>
-        <button onClick={handleMuteToggle} className="hover:text-text-primary transition-colors">
+        <button
+          onClick={handleMuteToggle}
+          className="hover:text-text-primary transition-colors">
           <VolumeIcon className="w-4 h-4" />
         </button>
         <div className="w-24">
@@ -389,8 +502,7 @@ export function Player() {
         <button
           onClick={toggleNowPlayingFullscreen}
           className={`hover:text-text-primary transition-colors ${nowPlayingFullscreen ? "text-accent-gold" : ""}`}
-          title="تمام صفحه در حال پخش"
-        >
+          title="تمام صفحه در حال پخش">
           <Maximize2 className="w-4 h-4" />
         </button>
       </div>
@@ -398,7 +510,15 @@ export function Player() {
   );
 }
 
-function ProgressSlider({ value, onChange, accent }: { value: number; onChange: (v: number) => void; accent?: boolean }) {
+function ProgressSlider({
+  value,
+  onChange,
+  accent,
+}: {
+  value: number;
+  onChange: (v: number) => void;
+  accent?: boolean;
+}) {
   const trackRef = useRef<HTMLDivElement>(null);
 
   const handleClick = (e: React.MouseEvent) => {
@@ -420,8 +540,7 @@ function ProgressSlider({ value, onChange, accent }: { value: number; onChange: 
       ref={trackRef}
       className="relative h-1 flex-1 bg-bg-elevated rounded-full cursor-pointer group"
       onClick={handleClick}
-      onTouchMove={handleTouchMove}
-    >
+      onTouchMove={handleTouchMove}>
       <motion.div
         className={`absolute top-0 right-0 h-full rounded-full transition-colors ${accent ? "bg-white group-hover:bg-[#1DB954]" : "bg-text-primary group-hover:bg-accent-gold"}`}
         style={{ width: `${value * 100}%` }}

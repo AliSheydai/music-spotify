@@ -1,7 +1,22 @@
 "use client";
 
-import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
-import { X, Maximize2, Minimize2, MoreHorizontal, Share2, Plus, BadgeCheck, ChevronRight, Music2 } from "lucide-react";
+import {
+  motion,
+  AnimatePresence,
+  useScroll,
+  useTransform,
+} from "framer-motion";
+import {
+  X,
+  Maximize2,
+  Minimize2,
+  MoreHorizontal,
+  Share2,
+  Plus,
+  BadgeCheck,
+  ChevronRight,
+  Music2,
+} from "lucide-react";
 import { useRef } from "react";
 import { usePlayerStore } from "../../store/player-store";
 import { useHomeData } from "@/lib/hooks";
@@ -25,13 +40,11 @@ export function NowPlayingPanel() {
             animate={{ width: 38, opacity: 1 }}
             exit={{ width: 0, opacity: 0 }}
             transition={{ duration: 0.25, ease: "easeOut" }}
-            className="shrink-0 overflow-hidden hidden md:flex"
-          >
+            className="shrink-0 overflow-hidden hidden md:flex">
             <button
               onClick={() => setOpen(true)}
               title="باز کردن در حال پخش"
-              className="h-full w-[38px] rounded-xl bg-bg-surface hover:bg-bg-elevated transition-colors flex flex-col items-center justify-center gap-4 text-text-secondary hover:text-text-primary"
-            >
+              className="h-full w-[38px] rounded-xl bg-bg-surface hover:bg-bg-elevated transition-colors flex flex-col items-center justify-center gap-4 text-text-secondary hover:text-text-primary">
               <ChevronRight className="w-5 h-5" />
               <Music2 className="w-4 h-4 opacity-70" />
             </button>
@@ -40,40 +53,46 @@ export function NowPlayingPanel() {
       </AnimatePresence>
 
       <AnimatePresence>
-      {open && !fullscreen && (
-        <motion.aside
-          key="np-panel"
-          initial={{ width: 0, opacity: 0 }}
-          animate={{ width: 360, opacity: 1 }}
-          exit={{ width: 0, opacity: 0 }}
-          transition={{ duration: 0.3, ease: "easeOut" }}
-          className="shrink-0 overflow-hidden hidden md:flex"
-        >
-          <div className="h-full w-[360px] rounded-xl bg-bg-surface flex flex-col">
-            <PanelHeader onClose={() => setOpen(false)} onFs={toggleFs} fullscreen={false} />
-            <div className="flex-1 overflow-y-auto">
-              <PanelBody track={track} fullscreen={false} />
+        {open && !fullscreen && (
+          <motion.aside
+            key="np-panel"
+            initial={{ width: 0, opacity: 0 }}
+            animate={{ width: 360, opacity: 1 }}
+            exit={{ width: 0, opacity: 0 }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
+            className="shrink-0 overflow-hidden hidden md:flex">
+            <div className="h-full w-[360px] rounded-xl bg-bg-surface flex flex-col">
+              <PanelHeader
+                onClose={() => setOpen(false)}
+                onFs={toggleFs}
+                fullscreen={false}
+              />
+              <div className="flex-1 overflow-y-auto">
+                <PanelBody track={track} fullscreen={false} />
+              </div>
             </div>
-          </div>
-        </motion.aside>
-      )}
+          </motion.aside>
+        )}
 
-      {open && fullscreen && (
-        <motion.div
-          key="np-fs"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.25 }}
-          className="absolute inset-0 z-20 rounded-xl overflow-hidden hidden md:block"
-          style={{
-            background: `radial-gradient(120% 80% at 50% 0%, rgba(220,38,38,0.55), rgba(10,10,15,1) 60%)`,
-          }}
-        >
-          <FullscreenView track={track} onClose={() => setOpen(false)} onFs={toggleFs} />
-        </motion.div>
-      )}
-    </AnimatePresence>
+        {open && fullscreen && (
+          <motion.div
+            key="np-fs"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25 }}
+            className="absolute inset-0 z-20 rounded-xl overflow-hidden hidden md:block"
+            style={{
+              background: `radial-gradient(120% 80% at 50% 0%, rgba(220,38,38,0.55), rgba(10,10,15,1) 60%)`,
+            }}>
+            <FullscreenView
+              track={track}
+              onClose={() => setOpen(false)}
+              onFs={toggleFs}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 }
@@ -99,14 +118,16 @@ function PanelHeader({
         <button
           onClick={onFs}
           title={fullscreen ? "کوچک کردن" : "تمام صفحه"}
-          className="w-8 h-8 rounded-full hover:bg-bg-elevated flex items-center justify-center hover:text-text-primary transition-colors"
-        >
-          {fullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+          className="w-8 h-8 rounded-full hover:bg-bg-elevated flex items-center justify-center hover:text-text-primary transition-colors">
+          {fullscreen ? (
+            <Minimize2 className="w-4 h-4" />
+          ) : (
+            <Maximize2 className="w-4 h-4" />
+          )}
         </button>
         <button
           onClick={onClose}
-          className="w-8 h-8 rounded-full hover:bg-bg-elevated flex items-center justify-center hover:text-text-primary transition-colors"
-        >
+          className="w-8 h-8 rounded-full hover:bg-bg-elevated flex items-center justify-center hover:text-text-primary transition-colors">
           <X className="w-4 h-4" />
         </button>
       </div>
@@ -114,13 +135,27 @@ function PanelHeader({
   );
 }
 
-function PanelBody({ track, fullscreen }: { track: { title: string; artist: string; cover: string }; fullscreen: boolean }) {
+function PanelBody({
+  track,
+  fullscreen,
+}: {
+  track: { title: string; artist: string; cover: string };
+  fullscreen: boolean;
+}) {
   const { data } = useHomeData();
-  const artist = data?.artists?.[0] ?? { title: "", cover: "/images/moein.jpg" };
-  const album = data?.albums?.[0] ?? { title: "", cover: "/images/moein.jpg", subtitle: "" };
+  const artist = data?.artists?.[0] ?? {
+    title: "",
+    cover: "/images/moein.jpg",
+  };
+  const album = data?.albums?.[0] ?? {
+    title: "",
+    cover: "/images/moein.jpg",
+    subtitle: "",
+  };
 
   return (
-    <div className={`flex flex-col gap-4 ${fullscreen ? "px-8 pb-12" : "px-4 pb-6"}`}>
+    <div
+      className={`flex flex-col gap-4 ${fullscreen ? "px-8 pb-12" : "px-4 pb-6"}`}>
       {/* Cover */}
       <motion.img
         layout
@@ -132,8 +167,12 @@ function PanelBody({ track, fullscreen }: { track: { title: string; artist: stri
       {/* Track meta */}
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <div className="text-xl font-bold truncate hover:underline cursor-pointer">{track.title}</div>
-          <div className="text-sm text-text-secondary truncate hover:underline cursor-pointer">{track.artist}</div>
+          <div className="text-xl font-bold truncate hover:underline cursor-pointer">
+            {track.title}
+          </div>
+          <div className="text-sm text-text-secondary truncate hover:underline cursor-pointer">
+            {track.artist}
+          </div>
         </div>
         <div className="flex items-center gap-1 text-text-secondary">
           <button className="w-8 h-8 rounded-full hover:bg-bg-elevated flex items-center justify-center hover:text-text-primary transition-colors">
@@ -141,8 +180,12 @@ function PanelBody({ track, fullscreen }: { track: { title: string; artist: stri
           </button>
           <button className="w-8 h-8 rounded-full hover:bg-bg-elevated flex items-center justify-center hover:text-text-primary transition-colors">
             <div className="p-2">
-                            <LikeButton track={track} artistTitle={track.artist} className="text-white/60" />
-                          </div>
+              <LikeButton
+                track={track}
+                artistTitle={track.artist}
+                className="text-white/60"
+              />
+            </div>
           </button>
         </div>
       </div>
@@ -154,8 +197,7 @@ function PanelBody({ track, fullscreen }: { track: { title: string; artist: stri
           backgroundImage: `linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.7) 70%, var(--bg-card) 100%), url(${artist.cover})`,
           backgroundSize: "cover",
           backgroundPosition: "center 30%",
-        }}
-      >
+        }}>
         <div className="h-44" />
         <div className="px-4 pb-4 -mt-16 relative">
           <div className="text-xs text-text-secondary mb-1">درباره هنرمند</div>
@@ -163,9 +205,13 @@ function PanelBody({ track, fullscreen }: { track: { title: string; artist: stri
             <span className="text-lg font-bold">{artist.title}</span>
             <BadgeCheck className="w-4 h-4 text-blue-400 fill-blue-400 stroke-bg-base" />
           </div>
-          <div className="text-xs text-text-secondary mb-3">۲٬۴۵۸٬۹۲۱ شنونده ماهانه</div>
+          <div className="text-xs text-text-secondary mb-3">
+            ۲٬۴۵۸٬۹۲۱ شنونده ماهانه
+          </div>
           <p className="text-xs text-text-secondary leading-6 line-clamp-3">
-            یکی از برجسته‌ترین هنرمندان موسیقی فارسی با سبکی منحصربه‌فرد. آثار این هنرمند ترکیبی از موسیقی سنتی و مدرن است که مخاطبان بسیاری در سراسر جهان دارد.
+            یکی از برجسته‌ترین هنرمندان موسیقی فارسی با سبکی منحصربه‌فرد. آثار
+            این هنرمند ترکیبی از موسیقی سنتی و مدرن است که مخاطبان بسیاری در
+            سراسر جهان دارد.
           </p>
           <button className="mt-3 px-4 py-1.5 rounded-full border border-border-strong text-xs font-bold hover:scale-105 transition-transform">
             دنبال کردن
@@ -177,7 +223,9 @@ function PanelBody({ track, fullscreen }: { track: { title: string; artist: stri
       <div className="rounded-lg bg-bg-card p-4">
         <div className="flex items-center justify-between mb-3">
           <div className="text-sm font-bold">عوامل</div>
-          <button className="text-xs text-text-secondary hover:underline">نمایش همه</button>
+          <button className="text-xs text-text-secondary hover:underline">
+            نمایش همه
+          </button>
         </div>
         <div className="space-y-3">
           <CreditRow name={track.artist} role="هنرمند اصلی" />
@@ -190,13 +238,21 @@ function PanelBody({ track, fullscreen }: { track: { title: string; artist: stri
       <div className="rounded-lg bg-bg-card p-4">
         <div className="flex items-center justify-between mb-3">
           <div className="text-sm font-bold">بعدی در صف پخش</div>
-          <button className="text-xs text-text-secondary hover:underline">باز کردن صف</button>
+          <button className="text-xs text-text-secondary hover:underline">
+            باز کردن صف
+          </button>
         </div>
         <div className="flex items-center gap-3">
-          <img src={album.cover} alt={album.title} className="w-10 h-10 rounded-md object-cover" />
+          <img
+            src={album.cover}
+            alt={album.title}
+            className="w-10 h-10 rounded-md object-cover"
+          />
           <div className="min-w-0">
             <div className="text-sm font-medium truncate">{album.title}</div>
-            <div className="text-xs text-text-secondary truncate">{album.subtitle}</div>
+            <div className="text-xs text-text-secondary truncate">
+              {album.subtitle}
+            </div>
           </div>
         </div>
       </div>
@@ -245,14 +301,12 @@ function FullscreenView({
           <button
             onClick={onFs}
             title="کوچک کردن"
-            className="w-9 h-9 rounded-full hover:bg-white/10 flex items-center justify-center hover:text-text-primary transition-colors"
-          >
+            className="w-9 h-9 rounded-full hover:bg-white/10 flex items-center justify-center hover:text-text-primary transition-colors">
             <Minimize2 className="w-5 h-5" />
           </button>
           <button
             onClick={onClose}
-            className="w-9 h-9 rounded-full hover:bg-white/10 flex items-center justify-center hover:text-text-primary transition-colors"
-          >
+            className="w-9 h-9 rounded-full hover:bg-white/10 flex items-center justify-center hover:text-text-primary transition-colors">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -274,17 +328,23 @@ function FullscreenView({
               <div className="text-lg font-bold">درباره هنرمند</div>
             </div>
             <img
-              src={data?.artists?.[0]?.cover ?? ''}
-              alt={data?.artists?.[0]?.title ?? ''}
+              src={data?.artists?.[0]?.cover ?? ""}
+              alt={data?.artists?.[0]?.title ?? ""}
               className="w-20 h-20 rounded-full object-cover mb-3"
             />
-            <div className="text-base font-bold mb-1">{data?.artists?.[0]?.title ?? ''}</div>
-            <div className="text-xs text-text-secondary mb-4">۲۱۹٬۲۷۴ شنونده ماهانه</div>
+            <div className="text-base font-bold mb-1">
+              {data?.artists?.[0]?.title ?? ""}
+            </div>
+            <div className="text-xs text-text-secondary mb-4">
+              ۲۱۹٬۲۷۴ شنونده ماهانه
+            </div>
             <button className="px-5 py-1.5 rounded-full border border-border-strong text-sm font-bold hover:scale-105 transition-transform mb-4">
               دنبال کردن
             </button>
             <p className="text-sm text-text-secondary leading-7">
-              یکی از برجسته‌ترین هنرمندان موسیقی فارسی با سبکی منحصربه‌فرد. آثار این هنرمند ترکیبی از موسیقی سنتی و مدرن است که مخاطبان بسیاری در سراسر جهان دارد.
+              یکی از برجسته‌ترین هنرمندان موسیقی فارسی با سبکی منحصربه‌فرد. آثار
+              این هنرمند ترکیبی از موسیقی سنتی و مدرن است که مخاطبان بسیاری در
+              سراسر جهان دارد.
             </p>
           </div>
 
@@ -292,7 +352,9 @@ function FullscreenView({
             <div className="rounded-xl bg-white/5 backdrop-blur-md p-6">
               <div className="flex items-center justify-between mb-4">
                 <div className="text-lg font-bold">عوامل</div>
-                <button className="text-xs text-text-secondary hover:underline">نمایش همه</button>
+                <button className="text-xs text-text-secondary hover:underline">
+                  نمایش همه
+                </button>
               </div>
               <div className="space-y-4">
                 <CreditRow name={track.artist} role="هنرمند اصلی" />
@@ -302,13 +364,23 @@ function FullscreenView({
             <div className="rounded-xl bg-white/5 backdrop-blur-md p-6">
               <div className="flex items-center justify-between mb-4">
                 <div className="text-lg font-bold">بعدی در صف پخش</div>
-                <button className="text-xs text-text-secondary hover:underline">باز کردن صف</button>
+                <button className="text-xs text-text-secondary hover:underline">
+                  باز کردن صف
+                </button>
               </div>
               <div className="flex items-center gap-3">
-                <img src={data?.albums?.[0]?.cover ?? "/images/moein.jpg"} alt="" className="w-12 h-12 rounded-md object-cover" />
+                <img
+                  src={data?.albums?.[0]?.cover ?? "/images/moein.jpg"}
+                  alt=""
+                  className="w-12 h-12 rounded-md object-cover"
+                />
                 <div className="min-w-0">
-                  <div className="text-sm font-medium truncate">{data?.albums?.[0]?.title ?? ""}</div>
-                  <div className="text-xs text-text-secondary truncate">{data?.albums?.[0]?.subtitle ?? ""}</div>
+                  <div className="text-sm font-medium truncate">
+                    {data?.albums?.[0]?.title ?? ""}
+                  </div>
+                  <div className="text-xs text-text-secondary truncate">
+                    {data?.albums?.[0]?.subtitle ?? ""}
+                  </div>
                 </div>
               </div>
             </div>
