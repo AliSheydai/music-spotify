@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { sidebarItems } from "@/lib/mock-data";
+// baseItems are loaded via TanStack Query in components; keep store initial empty
 import type { Card } from "@/lib/mock-data";
 
 export type SidebarMode = "normal" | "collapsed" | "expanded";
@@ -53,7 +53,7 @@ export const useLibraryStore = create<LibraryState>((set, get) => ({
   sort: "recents",
   searchOpen: false,
   searchQuery: "",
-  baseItems: sidebarItems,
+  baseItems: [],
   customPlaylists: [],
 
   setView: (view) => set({ view }),

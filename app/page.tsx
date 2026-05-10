@@ -4,11 +4,13 @@ import { motion } from "framer-motion";
 import { AppShell } from "../components/music/AppShell";
 import { SectionRow } from "../components/music/SectionRow";
 import { SearchHero } from "../components/music/SearchHero";
-import { featuredCards, radioCards, albumCards, artistCards, playlistCards } from "../lib/mock-data";
+import { useHomeData } from "../lib/hooks";
 
 const filters = ["همه", "موسیقی", "پادکست", "کتاب صوتی"];
 
 export default function HomePage() {
+  const { data } = useHomeData();
+
   return (
     <AppShell withPadding={false} transparentBg={true}>
       <SearchHero />
@@ -35,11 +37,11 @@ export default function HomePage() {
         transition={{ duration: 0.4 }}
         className="md:px-4 xl:px-5 md:pt-4 md:pb-8 px-2.5 pt-2 pb-6"
       >
-        <SectionRow title="پیشنهاد ویژه برای شما" isShowAll={true} cards={featuredCards} />
-        <SectionRow title="رادیوهای محبوب" isShowAll={true} cards={radioCards} />
-        <SectionRow title="آلبوم‌ها و تک‌آهنگ‌ها" isShowAll={true} cards={albumCards} />
-        <SectionRow title="هنرمندان محبوب" isShowAll={true} cards={artistCards} />
-        <SectionRow title="پلی‌لیست‌های پیشنهادی 🔥" isShowAll={true} cards={playlistCards} />
+        <SectionRow title="پیشنهاد ویژه برای شما" isShowAll={true} cards={data?.featured ?? []} />
+        <SectionRow title="رادیوهای محبوب" isShowAll={true} cards={data?.radio ?? []} />
+        <SectionRow title="آلبوم‌ها و تک‌آهنگ‌ها" isShowAll={true} cards={data?.albums ?? []} />
+        <SectionRow title="هنرمندان محبوب" isShowAll={true} cards={data?.artists ?? []} />
+        <SectionRow title="پلی‌لیست‌های پیشنهادی 🔥" isShowAll={true} cards={data?.playlists ?? []} />
       </motion.div>
     </AppShell>
   );

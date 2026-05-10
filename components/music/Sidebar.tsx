@@ -17,8 +17,8 @@ import {
   Check,
 } from "lucide-react";
 import { useMemo, useRef, useEffect, useState, type ReactNode } from "react";
-import { artistCards } from "../../lib/mock-data";
-import type { Card } from "../../lib/mock-data";
+import { useSidebarItems } from "@/lib/hooks";
+import type { Card } from "@/lib/mock-data";
 import {
   useLibraryStore,
   type LibraryView,
@@ -109,11 +109,12 @@ export function Sidebar() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [baseItems, customPlaylists]);
 
+  const { data: sidebarQueryItems } = useSidebarItems();
+
   const filtered = useMemo(() => {
     let list = allItems;
-    if (filter === "playlists")
-      list = list.filter((i) => i.type === "playlist" || i.type === "album");
-    if (filter === "artists") list = artistCards;
+    if (filter === "playlists") list = list.filter((i) => i.type === "playlist" || i.type === "album");
+    if (filter === "artists") list = sidebarQueryItems ? sidebarQueryItems.filter((i) => i.type === "artist") : list.filter((i) => i.type === "artist");
     if (searchQuery.trim()) {
       const q = searchQuery.trim().toLowerCase();
       list = list.filter((i) => i.title.toLowerCase().includes(q));

@@ -2,7 +2,7 @@ import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion"
 import { X, Maximize2, Minimize2, MoreHorizontal, Share2, Plus, BadgeCheck, ChevronRight, Music2 } from "lucide-react";
 import { useRef } from "react";
 import { usePlayerStore } from "../../store/player-store";
-import { artistCards, albumCards } from "../../lib/mock-data";
+import { useHomeData } from "@/lib/hooks";
 import Image from "next/image";
 
 export function NowPlayingPanel() {
@@ -112,8 +112,9 @@ function PanelHeader({
 }
 
 function PanelBody({ track, fullscreen }: { track: { title: string; artist: string; cover: string }; fullscreen: boolean }) {
-  const artist = artistCards[0];
-  const album = albumCards[0];
+  const { data } = useHomeData();
+  const artist = data?.artists?.[0] ?? { title: "", cover: "/images/moein.jpg" };
+  const album = data?.albums?.[0] ?? { title: "", cover: "/images/moein.jpg", subtitle: "" };
 
   return (
     <div className={`flex flex-col gap-4 ${fullscreen ? "px-8 pb-12" : "px-4 pb-6"}`}>
@@ -267,11 +268,11 @@ function FullscreenView({
               <div className="text-lg font-bold">درباره هنرمند</div>
             </div>
             <img
-              src={artistCards[0].cover}
-              alt={artistCards[0].title}
+              src={data?.artists?.[0]?.cover ?? ''}
+              alt={data?.artists?.[0]?.title ?? ''}
               className="w-20 h-20 rounded-full object-cover mb-3"
             />
-            <div className="text-base font-bold mb-1">{artistCards[0].title}</div>
+            <div className="text-base font-bold mb-1">{data?.artists?.[0]?.title ?? ''}</div>
             <div className="text-xs text-text-secondary mb-4">۲۱۹٬۲۷۴ شنونده ماهانه</div>
             <button className="px-5 py-1.5 rounded-full border border-border-strong text-sm font-bold hover:scale-105 transition-transform mb-4">
               دنبال کردن

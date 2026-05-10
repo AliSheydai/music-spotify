@@ -16,19 +16,14 @@ import {
 } from "lucide-react";
 import { useRef, useState, use } from "react";
 import { AppShell } from "@/components/music/AppShell";
-import {
-  featuredCards,
-  playlistCards,
-  albumCards,
-  artistCards,
-} from "@/lib/mock-data";
+import { usePlaylist, useArtist, useCurrentTrack } from "@/lib/hooks";
 import { usePlayerStore } from "@/store/player-store";
 import { useLibraryStore } from "@/store/library-store";
 import Image from "next/image";
 import Link from "next/link";
 
-// تعریف دیتای ثابت خارج از کامپوننت (همانند فایل اصلی خودتان)
-const allPlaylists = [...featuredCards, ...playlistCards, ...albumCards];
+// نمونه دیتا محلی برای زمانی که API داده‌ای برنگرداند
+const allPlaylists = [];
 
 const sampleTracks = Array.from({ length: 10 }).map((_, i) => ({
   id: `t${i}`,
@@ -71,7 +66,8 @@ export default function PlaylistPage({ params }: Props) {
   } = useLibraryStore();
 
   const custom = customPlaylists.find((p) => p.id === id);
-  const card = allPlaylists.find((c) => c.id === id);
+  const { data: playlistData } = usePlaylist(id);
+  const card = custom ? undefined : playlistData?.card ?? undefined;
   const isLiked = id === "liked";
 
   const fileRef = useRef<HTMLInputElement>(null);
@@ -121,7 +117,9 @@ export default function PlaylistPage({ params }: Props) {
     ? "from-violet-700/60 via-violet-900/30 to-transparent"
     : "from-violet-700/40 to-transparent";
 
-  const artist = artistCards.find((a) => a.id === id) ?? artistCards[0];
+  const { data: artistData } = useArtist(id);
+  const artist = artistData?.artist ?? undefined;
+  useCurrentTrack();
   const setTrack = usePlayerStore((s) => s.setTrack);
   const currentTrack = usePlayerStore((s) => s.track);
   const isPlaying = usePlayerStore((s) => s.isPlaying);
@@ -239,7 +237,7 @@ export default function PlaylistPage({ params }: Props) {
           )}
 
           {tracks.map((t, i) => {
-            const trackCover = (t as any).cover ?? artist.cover ?? cover;
+            const trackCover = (t as any).cover ?? artist?.cover ?? cover ?? "/images/moein.jpg";
             const plays = (t as any).plays ?? undefined;
             const isActive = currentTrack?.id === t.id && isPlaying;
             return (
@@ -250,20 +248,20 @@ export default function PlaylistPage({ params }: Props) {
                 transition={{ delay: i * 0.03 }}
                 className={`group grid grid-cols-[24px_1fr_1fr_60px] items-center gap-4 rounded-md w-full py-2 transition-colors cursor-pointer`}
                 onClick={() =>
-                  setTrack({
-                    id: t.id,
-                    title: t.title,
-                    artist: (t as any).artist ?? artist.title,
-                    cover: (t as any).cover ?? artist.cover ?? cover ?? "/images/moein.jpg",
-                    duration: parseDuration((t as any).duration),
-                  })
+                    setTrack({
+                      id: t.id,
+                      title: t.title,
+                      artist: (t as any).artist ?? artist?.title ?? "",
+                      cover: (t as any).cover ?? artist?.cover ?? cover ?? "/images/moein.jpg",
+                      duration: parseDuration((t as any).duration),
+                    })
                 }>
                 <button
                   onClick={() =>
                     setTrack({
-                      ...(t as any),
-                      artist: (t as any).artist ?? artist.title,
-                    })
+                        ...(t as any),
+                        artist: (t as any).artist ?? artist?.title ?? "",
+                      })
                   }
                   className="hidden md:flex w-8 h-8 items-center justify-center text-text-secondary hover:text-text-primary">
                   <span className="group-hover:hidden text-sm tabular-nums">

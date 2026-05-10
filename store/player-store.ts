@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { currentTrack, type Track } from "@/lib/mock-data";
+import type { Track } from "@/lib/mock-data";
 
 type PlayerState = {
   track: Track;
@@ -20,7 +20,7 @@ type PlayerState = {
 };
 
 export const usePlayerStore = create<PlayerState>((set) => ({
-  track: currentTrack,
+  track: { id: "", title: "", artist: "", cover: "/images/moein.jpg", duration: 0 } as Track,
   isPlaying: false,
   progress: 0.25,
   volume: 0.7,

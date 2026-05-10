@@ -6,9 +6,20 @@ import { motion } from "framer-motion";
 import { usePlayerStore } from "../../store/player-store";
 import { useLibraryStore } from "../../store/library-store";
 import { useMemo } from "react";
-import { featuredCards, radioCards, albumCards, artistCards, playlistCards } from "../../lib/mock-data";
+import { useHomeData } from "@/lib/hooks";
 
-const allCards = [...featuredCards, ...radioCards, ...albumCards, ...artistCards, ...playlistCards];
+const useAllCards = () => {
+  const { data } = useHomeData();
+  return useMemo(() => {
+    return [
+      ...(data?.featured ?? []),
+      ...(data?.radio ?? []),
+      ...(data?.albums ?? []),
+      ...(data?.artists ?? []),
+      ...(data?.playlists ?? []),
+    ];
+  }, [data]);
+};
 
 export function AppShell({ 
   children, 
@@ -21,6 +32,8 @@ export function AppShell({
 }) {
   const hoveredId = usePlayerStore((s) => s.hoveredCardId);
   const expanded = useLibraryStore((s) => s.sidebarMode === "expanded");
+
+  const allCards = useAllCards();
 
   const bgGradient = useMemo(() => {
     const card = allCards.find((c) => c.id === hoveredId);
