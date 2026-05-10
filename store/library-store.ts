@@ -128,7 +128,8 @@ export const useLibraryStore = create<LibraryState>()(
         else get().followArtist(card);
       },
 
-      isAlbumSaved: (id) => get().baseItems.some((i) => i.type === "album" && i.id === id),
+      // consider an item saved if its id exists in baseItems (covers albums and playlists)
+      isAlbumSaved: (id) => get().baseItems.some((i) => i.id === id),
       saveAlbum: (card) =>
         set((s) => {
           if (s.baseItems.some((i) => i.id === card.id)) return s;
@@ -137,7 +138,7 @@ export const useLibraryStore = create<LibraryState>()(
       unsaveAlbum: (id) =>
         set((s) => ({ baseItems: s.baseItems.filter((i) => i.id !== id) })),
       toggleSaveAlbum: (card) => {
-        const exists = get().baseItems.some((i) => i.id === card.id && i.type === "album");
+        const exists = get().baseItems.some((i) => i.id === card.id);
         if (exists) get().unsaveAlbum(card.id);
         else get().saveAlbum(card);
       },

@@ -13,6 +13,7 @@ export type Card = {
   cover: string;
   type: "playlist" | "album" | "artist" | "radio";
   gradient?: string;
+  tracks?: Track[];
 };
 
 // لیست کارت‌های ویژه
@@ -38,13 +39,66 @@ export const radioCards: Card[] = [
 
 // لیست آلبوم‌ها
 export const albumCards: Card[] = [
-  { id: "a1", title: "ابراهیم", subtitle: "همایون شجریان", cover: "/images/maziar.jpg", type: "album" },
-  { id: "a2", title: "خودکشی ممنوع", subtitle: "محسن چاوشی", cover: "/images/shadmehr.jpg", type: "album" },
-  { id: "a3", title: "خداحافظی تلخ", subtitle: "محسن یگانه", cover: "/images/mahasti.jpg", type: "album" },
-  { id: "a4", title: "بهت قول میدم", subtitle: "بنیامین", cover: "/images/maziar.jpg", type: "album" },
-  { id: "a5", title: "نبض", subtitle: "سیروان خسروی", cover: "/images/maziar.jpg", type: "album" },
-  { id: "a6", title: "بهرام", subtitle: "بهرام نوراللهی", cover: "/images/shervin.jpg", type: "album" },
-  { id: "a7", title: "کلاف", subtitle: "علیرضا قربانی", cover: "/images/mahasti.jpg", type: "album" },
+  {
+    id: "a1",
+    title: "ابراهیم",
+    subtitle: "همایون شجریان",
+    cover: "/images/maziar.jpg",
+    type: "album",
+    tracks: [
+      { id: "a1-t1", title: "قطعه ۱", artist: "همایون شجریان", cover: "/images/maziar.jpg", duration: 215 },
+      { id: "a1-t2", title: "قطعه ۲", artist: "همایون شجریان", cover: "/images/maziar.jpg", duration: 198 },
+      { id: "a1-t3", title: "قطعه ۳", artist: "همایون شجریان", cover: "/images/maziar.jpg", duration: 202 },
+    ],
+  },
+  {
+    id: "a2",
+    title: "خودکشی ممنوع",
+    subtitle: "محسن چاوشی",
+    cover: "/images/shadmehr.jpg",
+    type: "album",
+    tracks: Array.from({ length: 9 }).map((_, i) => ({ id: `a2-t${i + 1}`, title: `قطعه ${i + 1}`, artist: "محسن چاوشی", cover: "/images/shadmehr.jpg", duration: 180 + i * 5 })),
+  },
+  {
+    id: "a3",
+    title: "خداحافظی تلخ",
+    subtitle: "محسن یگانه",
+    cover: "/images/mahasti.jpg",
+    type: "album",
+    tracks: Array.from({ length: 11 }).map((_, i) => ({ id: `a3-t${i + 1}`, title: `قطعه ${i + 1}`, artist: "محسن یگانه", cover: "/images/mahasti.jpg", duration: 200 + i * 4 })),
+  },
+  {
+    id: "a4",
+    title: "بهت قول میدم",
+    subtitle: "بنیامین",
+    cover: "/images/maziar.jpg",
+    type: "album",
+    tracks: Array.from({ length: 8 }).map((_, i) => ({ id: `a4-t${i + 1}`, title: `قطعه ${i + 1}`, artist: "بنیامین", cover: "/images/maziar.jpg", duration: 190 + i * 6 })),
+  },
+  {
+    id: "a5",
+    title: "نبض",
+    subtitle: "سیروان خسروی",
+    cover: "/images/maziar.jpg",
+    type: "album",
+    tracks: Array.from({ length: 12 }).map((_, i) => ({ id: `a5-t${i + 1}`, title: `قطعه ${i + 1}`, artist: "سیروان خسروی", cover: "/images/maziar.jpg", duration: 210 + i * 3 })),
+  },
+  {
+    id: "a6",
+    title: "بهرام",
+    subtitle: "بهرام نوراللهی",
+    cover: "/images/shervin.jpg",
+    type: "album",
+    tracks: Array.from({ length: 7 }).map((_, i) => ({ id: `a6-t${i + 1}`, title: `قطعه ${i + 1}`, artist: "بهرام نوراللهی", cover: "/images/shervin.jpg", duration: 205 + i * 2 })),
+  },
+  {
+    id: "a7",
+    title: "کلاف",
+    subtitle: "علیرضا قربانی",
+    cover: "/images/mahasti.jpg",
+    type: "album",
+    tracks: Array.from({ length: 6 }).map((_, i) => ({ id: `a7-t${i + 1}`, title: `قطعه ${i + 1}`, artist: "علیرضا قربانی", cover: "/images/mahasti.jpg", duration: 195 + i * 7 })),
+  },
 ];
 
 // لیست هنرمندان (مثال مورد نظر شما در ردیف اول)

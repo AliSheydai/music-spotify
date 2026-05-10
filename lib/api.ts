@@ -28,14 +28,20 @@ export async function fetchPlaylistById(id: string): Promise<{ card: Card | null
   await new Promise((r) => setTimeout(r, 50));
   const all = [...featuredCards, ...playlistCards, ...albumCards];
   const card = all.find((c) => c.id === id) ?? null;
-  // simple synthetic tracks for demo
-  const tracks: Track[] = Array.from({ length: 8 }).map((_, i) => ({
-    id: `${id}-t${i}`,
-    title: `قطعه ${i + 1}`,
-    artist: artistCards[i % artistCards.length].title,
-    cover: card?.cover ?? "/images/moein.jpg",
-    duration: 180 + i * 10,
-  }));
+  // if the card already contains tracks (e.g. album mock-data), use them
+  let tracks: Track[];
+  if (card && (card as any).tracks && Array.isArray((card as any).tracks)) {
+    tracks = (card as any).tracks as Track[];
+  } else {
+    // simple synthetic tracks for demo
+    tracks = Array.from({ length: 8 }).map((_, i) => ({
+      id: `${id}-t${i}`,
+      title: `قطعه ${i + 1}`,
+      artist: artistCards[i % artistCards.length].title,
+      cover: card?.cover ?? "/images/moein.jpg",
+      duration: 180 + i * 10,
+    }));
+  }
 
   return { card, tracks };
 }

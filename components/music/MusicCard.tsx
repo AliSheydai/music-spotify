@@ -54,9 +54,9 @@ export function MusicCard({ card }: { card: Card }) {
             className={`w-full aspect-square object-cover shadow-[var(--shadow-card)] ${isCircle ? "rounded-full" : "rounded-lg"}`}
           />
             {/* Save album / follow controls */}
-            {card.type === "album" && (
+            {/* {card.type === "album" && (
               <AlbumSaveButton card={card} />
-            )}
+            )} */}
           {/* gradient overlay on hover */}
           <div className={`absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 ${isCircle ? "rounded-full" : "rounded-lg"}`} />
 
@@ -84,7 +84,9 @@ export function MusicCard({ card }: { card: Card }) {
           {card.title}
         </h3>
         <p className="text-xs text-text-secondary text-truncate-2 leading-relaxed">
-          {card.subtitle}
+          {card.type === "album" && card.tracks && card.tracks.length > 0
+            ? `${card.subtitle} • ${card.tracks.length} آهنگ`
+            : card.subtitle}
         </p>
       </NextLink>
     </motion.div>
@@ -109,4 +111,10 @@ function AlbumSaveButton({ card }: { card: Card }) {
       {isSaved ? <Check className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
     </button>
   );
+}
+
+// hide save control for virtual liked playlist if it ever appears as a card
+function AlbumSaveButtonGuarded({ card }: { card: Card }) {
+  if (!card || card.id === "liked") return null;
+  return <AlbumSaveButton card={card} />;
 }

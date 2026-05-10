@@ -14,7 +14,7 @@ import {
   Plus,
   ArrowLeft,
 } from "lucide-react";
-import { useRef, useState, use } from "react";
+import React, { useRef, useState, use } from "react";
 import { AppShell } from "@/components/music/AppShell";
 import { usePlaylist, useArtist, useCurrentTrack } from "@/lib/hooks";
 import { usePlayerStore } from "@/store/player-store";
@@ -22,28 +22,78 @@ import { useLibraryStore } from "@/store/library-store";
 import Image from "next/image";
 import Link from "next/link";
 import LikeButton from "@/components/music/LikeButton";
+import { AnimatePresence } from "framer-motion";
+import { BadgeCheck } from "lucide-react";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+  TooltipProvider,
+} from "@/components/ui/tooltip";
 
-function TrackLikeHeart({ track, artistTitle }: { track: any; artistTitle?: string }) {
-  const liked = useLibraryStore((s) => s.likedTracks.some((x) => x.id === track.id));
-  const toggleLikedTrack = useLibraryStore((s) => s.toggleLikedTrack);
+const AlbumSaveButton = React.forwardRef<HTMLButtonElement, { card: any } & React.ButtonHTMLAttributes<HTMLButtonElement>>(function AlbumSaveButton({ card, className: cls, onClick: onClickProp, ...rest }, ref) {
+  const router = useRouter();
+  const isSaved = useLibraryStore((s) => s.isAlbumSaved(card?.id));
+  const toggleSave = useLibraryStore((s) => s.toggleSaveAlbum);
+
+  // Don't show save control for the virtual "liked" playlist
+  if (!card || card.id === "liked") return null;
+
+  const handle = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    const willBeSaved = !isSaved;
+    toggleSave({
+      id: card.id,
+      title: card.title ?? card?.name ?? "",
+      subtitle: card.subtitle ?? "",
+      cover: card.cover ?? "",
+      type: card.type ?? "album",
+    });
+
+    if (willBeSaved) {
+      toast.success("به کتابخانه اضافه شد.");
+    } else {
+      toast("از کتابخانه حذف شد.");
+    }
+    if (onClickProp) onClickProp(e as any);
+  };
+
+  const baseClass = `w-10 h-10 rounded-full flex items-center justify-center transition-colors ${isSaved ? "text-accent-emerald" : "text-white/70 hover:text-accent-rose"}`;
 
   return (
-    <button
-      onClick={(e) => {
-        e.stopPropagation();
-        toggleLikedTrack({
-          id: track.id,
-          title: track.title,
-          artist: artistTitle ?? track.artist ?? "",
-          album: track.album ?? "",
-          duration: String(track.duration ?? ""),
-        });
-      }}
-      className={`hidden md:flex w-8 h-8 items-center justify-center transition-colors ${liked ? "text-accent-emerald" : "text-text-secondary hover:text-text-primary"}`}>
-      <Heart className="w-4 h-4" />
-    </button>
+    <motion.button
+      ref={ref}
+      onClick={handle}
+      whileTap={{ scale: 0.92 }}
+      className={`${baseClass} ${cls ?? ""}`}
+      {...rest}>
+      <AnimatePresence mode="wait">
+        {isSaved ? (
+          <motion.span
+            key="check"
+            initial={{ scale: 0.6, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.8, opacity: 0 }}
+            transition={{ type: "spring", stiffness: 360, damping: 20 }}>
+            <BadgeCheck className="w-5 h-5" />
+          </motion.span>
+        ) : (
+          <motion.span
+            key="plus"
+            initial={{ scale: 0.6, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.8, opacity: 0 }}
+            transition={{ type: "spring", stiffness: 360, damping: 20 }}>
+            <Plus className="w-5 h-5" />
+          </motion.span>
+        )}
+      </AnimatePresence>
+    </motion.button>
   );
-}
+});
 
 // نمونه دیتا محلی برای زمانی که API داده‌ای برنگرداند
 const allPlaylists = [];
@@ -91,12 +141,14 @@ export default function PlaylistPage({ params }: Props) {
 
   const custom = customPlaylists.find((p) => p.id === id);
   const { data: playlistData } = usePlaylist(id);
-  const card = custom ? undefined : playlistData?.card ?? undefined;
+  const card = custom ? undefined : (playlistData?.card ?? undefined);
   const isLiked = id === "liked";
 
   const fileRef = useRef<HTMLInputElement>(null);
   const [editing, setEditing] = useState(false);
-  const [showSearch, setShowSearch] = useState((custom?.tracks.length ?? 0) === 0 || (isLiked && likedTracks.length === 0));
+  const [showSearch, setShowSearch] = useState(
+    (custom?.tracks.length ?? 0) === 0 || (isLiked && likedTracks.length === 0),
+  );
   const [query, setQuery] = useState("");
 
   const title = custom
@@ -105,7 +157,21 @@ export default function PlaylistPage({ params }: Props) {
       ? "آهنگ‌های لایک شده"
       : (card?.title ?? "پلی‌لیست");
   const cover = custom?.cover ?? card?.cover;
-  const tracks = custom ? custom.tracks : isLiked ? likedTracks : sampleTracks;
+  const tracks = custom
+    ? custom.tracks
+    : isLiked
+    ? likedTracks
+    : (playlistData?.tracks ?? sampleTracks);
+
+  // headerCard represents the item shown in the header (playlist/album)
+  const headerCard = card ?? ({
+    id,
+    title,
+    subtitle: "",
+    cover: cover ?? "",
+    type: isLiked ? "playlist" : (card?.type ?? "album"),
+  } as any);
+  const headerIsSaved = useLibraryStore((s) => s.isAlbumSaved(headerCard.id));
 
   const handleCover = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -130,8 +196,14 @@ export default function PlaylistPage({ params }: Props) {
 
   const parseDuration = (d: number | string) => {
     if (typeof d === "number") return d;
-    const parts = String(d).split(":").map((p) => parseInt(p, 10));
-    if (parts.length === 2 && !Number.isNaN(parts[0]) && !Number.isNaN(parts[1])) {
+    const parts = String(d)
+      .split(":")
+      .map((p) => parseInt(p, 10));
+    if (
+      parts.length === 2 &&
+      !Number.isNaN(parts[0]) &&
+      !Number.isNaN(parts[1])
+    ) {
       return parts[0] * 60 + parts[1];
     }
     return 0;
@@ -228,18 +300,7 @@ export default function PlaylistPage({ params }: Props) {
             </div>
           </div>
           {/* Action Bar - Floating Play Button for Mobile */}
-          <div
-            dir="ltr"
-            className="py-8 flex items-center justify-between relative">
-            <div className="flex items-center gap-6">
-              <button className="text-white/70 hover:text-accent-rose transition-colors">
-                <Heart className="w-7 h-7" />
-              </button>
-              <button className="text-white/70">
-                <MoreHorizontal className="w-7 h-7" />
-              </button>
-            </div>
-
+          <div className="py-8 flex items-center gap-4 relative">
             {/* دکمه پلی که در موبایل روی مرز هدر قرار می‌گیرد */}
             <motion.button
               whileHover={{ scale: 1.06 }}
@@ -247,6 +308,27 @@ export default function PlaylistPage({ params }: Props) {
               className="w-14 h-14 rounded-full bg-accent-gold text-bg-base flex items-center justify-center shadow-[var(--shadow-glow-gold)] cursor-pointer">
               <Play className="w-6 h-6 fill-current mr-0.5" />
             </motion.button>
+
+            <div className="flex items-center gap-6">
+              <TooltipProvider delayDuration={0}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                      <AlbumSaveButton card={headerCard} className="cursor-pointer"/>
+                    </TooltipTrigger>
+                  <TooltipContent
+                    side="top"
+                    sideOffset={8}
+                    className="!p-2 bg-bg-surface">
+                      <div className="text-sm font-medium text-white truncate max-w-[180px] pb-1.5">
+                        {headerIsSaved ? "حذف از کتابخانه" : "ذخیره در کتابخانه"}
+                      </div>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              <button className="text-white/70">
+                <MoreHorizontal className="w-7 h-7" />
+              </button>
+            </div>
           </div>
         </div>
 
@@ -262,7 +344,8 @@ export default function PlaylistPage({ params }: Props) {
           )}
 
           {tracks.map((t, i) => {
-            const trackCover = (t as any).cover ?? artist?.cover ?? cover ?? "/images/moein.jpg";
+            const trackCover =
+              (t as any).cover ?? artist?.cover ?? cover ?? "/images/moein.jpg";
             const plays = (t as any).plays ?? undefined;
             const isActive = currentTrack?.id === t.id && isPlaying;
             return (
@@ -273,13 +356,17 @@ export default function PlaylistPage({ params }: Props) {
                 transition={{ delay: i * 0.03 }}
                 className={`group md:grid md:grid-cols-[24px_minmax(0,1fr)_minmax(0,1fr)_60px] flex items-center justify-between gap-4 rounded-sm w-full py-2 cursor-pointer hover:bg-bg-elevated`}
                 onClick={() =>
-                    setTrack({
-                      id: t.id,
-                      title: t.title,
-                      artist: (t as any).artist ?? artist?.title ?? "",
-                      cover: (t as any).cover ?? artist?.cover ?? cover ?? "/images/moein.jpg",
-                      duration: parseDuration((t as any).duration),
-                    })
+                  setTrack({
+                    id: t.id,
+                    title: t.title,
+                    artist: (t as any).artist ?? artist?.title ?? "",
+                    cover:
+                      (t as any).cover ??
+                      artist?.cover ??
+                      cover ??
+                      "/images/moein.jpg",
+                    duration: parseDuration((t as any).duration),
+                  })
                 }>
                 <button
                   onClick={() =>
@@ -302,7 +389,8 @@ export default function PlaylistPage({ params }: Props) {
                     className="w-10 h-10 rounded object-cover flex-shrink-0"
                   />
                   <div className="min-w-0 text-right">
-                    <div className={`font-bold text-sm truncate ${isActive ? "text-accent-gold" : "text-text-primary"}`}>
+                    <div
+                      className={`font-bold text-sm truncate ${isActive ? "text-accent-gold" : "text-text-primary"}`}>
                       {t.title}
                     </div>
                     <div className="text-xs text-text-secondary truncate">
