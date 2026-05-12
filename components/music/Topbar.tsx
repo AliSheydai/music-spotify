@@ -1,9 +1,31 @@
+"use client";
+
 import NextLink from "next/link";
 import { Home, Bell, Music2 } from "lucide-react";
 import Link from "next/link";
 import { TransitionLink } from "../view-transition";
+import React, { useEffect, useState } from "react";
+import { Avatar, AvatarImage, AvatarFallback } from "../ui/avatar";
+
+const STORAGE_KEY = "lm_profile_image";
 
 export function Topbar() {
+  const [imageSrc, setImageSrc] = useState<string | null>(null);
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) setImageSrc(stored);
+    } catch (e) {
+      // ignore
+    }
+
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === STORAGE_KEY) setImageSrc(e.newValue);
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, []);
   return (
     <header className="hidden md:fixed md:block top-6 left-1/2 -translate-x-1/2 z-50 w-[90%] max-w-[900px]">
       <div className="flex items-center justify-between px-6 py-2 rounded-xl backdrop-blur-2xl bg-white/5 border border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.37)]">
@@ -42,12 +64,20 @@ export function Topbar() {
           <div className="w-[1px] h-6 bg-white/10 mx-1"></div>
 
           {/* پروفایل */}
-          <div className="flex items-center gap-2 p-1 pr-3 rounded-lg bg-white/5 border border-white/5 hover:bg-white/10 cursor-pointer transition-all">
-            <span className="text-xs font-medium text-gray-300 hidden sm:block">علی رضایی</span>
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold ring-2 ring-black">
-              ع
-            </div>
-          </div>
+          <NextLink
+            href="/profile"
+            className="flex items-center gap-2 p-1 pr-3 rounded-lg bg-white/5 border border-white/5 hover:bg-white/10 cursor-pointer transition-all"
+            aria-label="پروفایل"
+          >
+            <span className="text-xs font-medium text-gray-300 hidden md:block">علی رضایی</span>
+            <Avatar className="h-8 w-8">
+              {imageSrc ? (
+                <AvatarImage src={imageSrc} alt="پروفایل" />
+              ) : (
+                <AvatarFallback>ع</AvatarFallback>
+              )}
+            </Avatar>
+          </NextLink>
         </div>
       </div>
     </header>

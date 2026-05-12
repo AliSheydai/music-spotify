@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { Heart, Clock, ArrowLeft } from "lucide-react";
+import { useRouter } from "next/navigation";
 import React, { useRef, useState, use } from "react";
 import { AppShell } from "@/components/music/AppShell";
 import { usePlaylist, useArtist, useCurrentTrack } from "@/lib/hooks";
@@ -50,6 +51,23 @@ interface Props {
 
 export default function PlaylistPage({ params }: Props) {
   const { id } = use(params as Promise<{ id: string }>); // unwrap params safely
+
+  const router = useRouter();
+
+  const handleBack = async () => {
+    if (typeof document !== "undefined" && (document as any).startViewTransition) {
+      try {
+        await (document as any).startViewTransition(() => {
+          router.back();
+          return Promise.resolve();
+        });
+      } catch (e) {
+        router.back();
+      }
+    } else {
+      router.back();
+    }
+  };
 
   const {
     customPlaylists,
@@ -143,11 +161,11 @@ export default function PlaylistPage({ params }: Props) {
         animate={{ opacity: 1, y: 0 }}
         className="-mx-6 md:-mx-10 -mt-4 px-2">
         {/* back button */}
-        <TransitionLink href="/" className="absolute top-5 left-5 z-50 md:hidden">
+        <button onClick={handleBack} className="absolute top-5 left-5 z-50 md:hidden">
           <div className="flex items-center justify-center w-10 h-10 rounded-full bg-bg-surface/50 text-gray-300 hover:text-white transition-all">
             <ArrowLeft className="w-4 h-4" />
           </div>
-        </TransitionLink>
+        </button>
         <PlaylistHeader
           custom={custom}
           isLiked={isLiked}

@@ -51,3 +51,33 @@ export function TransitionLink({ href, children, className }: { href: string; ch
 }
 
 export default ViewTransitionProvider;
+
+export function TransitoinBackButton() {
+  const router = useRouter();
+
+  // تابع برای رفتن به مسیر مشخص
+  async function navigate(href: string) {
+    if (typeof document !== "undefined" && (document as any).startViewTransition) {
+      await (document as any).startViewTransition(() => {
+        router.push(href);
+        return Promise.resolve();
+      });
+    } else {
+      router.push(href);
+    }
+  }
+
+  // تابع جدید برای برگشت به عقب
+  async function back() {
+    if (typeof document !== "undefined" && (document as any).startViewTransition) {
+      await (document as any).startViewTransition(() => {
+        router.back(); // استفاده از back به جای push
+        return Promise.resolve();
+      });
+    } else {
+      router.back();
+    }
+  }
+
+  return { navigate, back };
+}
