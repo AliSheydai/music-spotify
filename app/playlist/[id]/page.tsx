@@ -1,103 +1,23 @@
 "use client";
 
 import { motion } from "framer-motion";
-import {
-  Play,
-  Heart,
-  MoreHorizontal,
-  Clock,
-  Music,
-  Pencil,
-  UserPlus,
-  Search,
-  X,
-  Plus,
-  ArrowLeft,
-} from "lucide-react";
+import { Heart, Clock, ArrowLeft } from "lucide-react";
 import React, { useRef, useState, use } from "react";
 import { AppShell } from "@/components/music/AppShell";
 import { usePlaylist, useArtist, useCurrentTrack } from "@/lib/hooks";
 import { usePlayerStore } from "@/store/player-store";
 import { useLibraryStore } from "@/store/library-store";
-import Image from "next/image";
 import Link from "next/link";
-import LikeButton from "@/components/music/LikeButton";
-import { AnimatePresence } from "framer-motion";
-import { BadgeCheck } from "lucide-react";
-import { toast } from "sonner";
-import { useRouter } from "next/navigation";
-import {
-  Tooltip,
-  TooltipTrigger,
-  TooltipContent,
-  TooltipProvider,
-} from "@/components/ui/tooltip";
+// LikeButton used inside track rows; imported by row component
+import PlaylistHeader from "@/components/music/PlaylistHeader";
+import PlaylistTrackRow from "@/components/music/PlaylistTrackRow";
+import AddSongsPanel from "@/components/music/AddSongsPanel";
+// tooltip primitives removed from this page (used in shared UI components)
 import { TransitionLink } from "@/components/view-transition";
 
-const AlbumSaveButton = React.forwardRef<HTMLButtonElement, { card: any } & React.ButtonHTMLAttributes<HTMLButtonElement>>(function AlbumSaveButton({ card, className: cls, onClick: onClickProp, ...rest }, ref) {
-  const router = useRouter();
-  const isSaved = useLibraryStore((s) => s.isAlbumSaved(card?.id));
-  const toggleSave = useLibraryStore((s) => s.toggleSaveAlbum);
-
-  // Don't show save control for the virtual "liked" playlist
-  if (!card || card.id === "liked") return null;
-
-  const handle = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    e.preventDefault();
-    const willBeSaved = !isSaved;
-    toggleSave({
-      id: card.id,
-      title: card.title ?? card?.name ?? "",
-      subtitle: card.subtitle ?? "",
-      cover: card.cover ?? "",
-      type: card.type ?? "album",
-    });
-
-    if (willBeSaved) {
-      toast.success("به کتابخانه اضافه شد.");
-    } else {
-      toast("از کتابخانه حذف شد.");
-    }
-    if (onClickProp) onClickProp(e as any);
-  };
-
-  const baseClass = `w-10 h-10 rounded-full flex items-center justify-center transition-colors ${isSaved ? "text-accent-emerald" : "text-white/70 hover:text-accent-rose"}`;
-
-  return (
-    <motion.button
-      ref={ref}
-      onClick={handle}
-      whileTap={{ scale: 0.92 }}
-      className={`${baseClass} ${cls ?? ""}`}
-      {...rest}>
-      <AnimatePresence mode="wait">
-        {isSaved ? (
-          <motion.span
-            key="check"
-            initial={{ scale: 0.6, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.8, opacity: 0 }}
-            transition={{ type: "spring", stiffness: 360, damping: 20 }}>
-            <BadgeCheck className="w-5 h-5" />
-          </motion.span>
-        ) : (
-          <motion.span
-            key="plus"
-            initial={{ scale: 0.6, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.8, opacity: 0 }}
-            transition={{ type: "spring", stiffness: 360, damping: 20 }}>
-            <Plus className="w-5 h-5" />
-          </motion.span>
-        )}
-      </AnimatePresence>
-    </motion.button>
-  );
-});
+// AlbumSaveButton and header/rows extracted to components in components/music/
 
 // نمونه دیتا محلی برای زمانی که API داده‌ای برنگرداند
-const allPlaylists = [];
 
 const sampleTracks = Array.from({ length: 10 }).map((_, i) => ({
   id: `t${i}`,
@@ -131,11 +51,9 @@ interface Props {
 export default function PlaylistPage({ params }: Props) {
   const { id } = use(params as Promise<{ id: string }>); // unwrap params safely
 
-  const togglePlay = usePlayerStore((s) => s.togglePlay);
   const {
     customPlaylists,
     updatePlaylistCover,
-    renamePlaylist,
     addTrackToPlaylist,
   } = useLibraryStore();
   const likedTracks = useLibraryStore((s) => s.likedTracks);
@@ -165,13 +83,13 @@ export default function PlaylistPage({ params }: Props) {
     : (playlistData?.tracks ?? sampleTracks);
 
   // headerCard represents the item shown in the header (playlist/album)
-  const headerCard = card ?? ({
+  const headerCard: any = card ?? {
     id,
     title,
     subtitle: "",
     cover: cover ?? "",
-    type: isLiked ? "playlist" : (card?.type ?? "album"),
-  } as any);
+    type: isLiked ? "playlist" : ((card as any)?.type ?? "album"),
+  };
   const headerIsSaved = useLibraryStore((s) => s.isAlbumSaved(headerCard.id));
 
   const handleCover = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -210,17 +128,13 @@ export default function PlaylistPage({ params }: Props) {
     return 0;
   };
 
-  const headerGradient = isLiked
-    ? "from-violet-700/60 via-violet-900/30 to-transparent"
-    : "from-violet-700/40 to-transparent";
-
   const { data: artistData } = useArtist(id);
   const artist = artistData?.artist ?? undefined;
   useCurrentTrack();
   const setTrack = usePlayerStore((s) => s.setTrack);
   const currentTrack = usePlayerStore((s) => s.track);
   const isPlaying = usePlayerStore((s) => s.isPlaying);
-  const toggleLikedTrack = useLibraryStore((s) => s.toggleLikedTrack);
+  
 
   return (
     <AppShell>
@@ -234,104 +148,19 @@ export default function PlaylistPage({ params }: Props) {
             <ArrowLeft className="w-4 h-4" />
           </div>
         </TransitionLink>
-        {/* Header */}
-        <div
-          className={`relative px-4 pt-12 pb-6 bg-gradient-to-b ${headerGradient} md:pt-8`}>
-          <div className="flex flex-col items-center md:flex-row md:items-end gap-6">
-            {/* Cover Image */}
-            <div className="relative w-48 h-48 md:w-56 md:h-56 mb-4 md:mb-0">
-              {custom ? (
-                <button
-                  onClick={() => fileRef.current?.click()}
-                  className="relative w-full h-full rounded-lg shadow-2xl overflow-hidden group bg-bg-elevated flex items-center justify-center">
-                  {cover ? (
-                    <img
-                      src={cover}
-                      alt={title}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <Music className="w-16 h-16 text-text-secondary" />
-                  )}
-                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center">
-                    <Pencil className="w-6 h-6 text-white" />
-                  </div>
-                  <input
-                    ref={fileRef}
-                    onChange={handleCover}
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                  />
-                </button>
-              ) : isLiked ? (
-                <div className="w-full h-full rounded-lg bg-gradient-to-br from-violet-500 to-fuchsia-700 flex items-center justify-center shadow-2xl">
-                  <Heart className="w-20 h-20 text-white fill-white" />
-                </div>
-              ) : (
-                <img
-                  src={cover}
-                  alt={title}
-                  className="w-full h-full shadow-2xl object-cover"
-                />
-              )}
-            </div>
-
-            {/* Metadata Information */}
-            <div className="flex-1 w-full text-right md:text-right">
-              <p className="hidden md:block text-xs font-bold uppercase mb-2">
-                {custom ? "پلی‌لیست عمومی" : "پلی‌لیست"}
-              </p>
-
-              {custom && editing ? (
-                <input
-                  autoFocus
-                  className="text-3xl md:text-6xl font-black bg-white/10 rounded px-2 outline-none w-full"
-                  // ... بقیه پراپ‌ها
-                />
-              ) : (
-                <h1 className="text-3xl md:text-7xl font-black text-white mb-2 leading-tight">
-                  {title}
-                </h1>
-              )}
-
-              <p className="text-sm text-white/60 mt-1 md:mt-2">
-                {tracks.length} آهنگ
-              </p>
-            </div>
-          </div>
-          {/* Action Bar - Floating Play Button for Mobile */}
-          <div className="py-8 flex items-center gap-4 relative">
-            {/* دکمه پلی که در موبایل روی مرز هدر قرار می‌گیرد */}
-            <motion.button
-              whileHover={{ scale: 1.06 }}
-              whileTap={{ scale: 0.94 }}
-              className="w-14 h-14 rounded-full bg-accent-gold text-bg-base flex items-center justify-center shadow-[var(--shadow-glow-gold)] cursor-pointer">
-              <Play className="w-6 h-6 fill-current mr-0.5" />
-            </motion.button>
-
-            <div className="flex items-center gap-6">
-              <TooltipProvider delayDuration={0}>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                      <AlbumSaveButton card={headerCard} className="cursor-pointer"/>
-                    </TooltipTrigger>
-                  <TooltipContent
-                    side="top"
-                    sideOffset={8}
-                    className="!p-2 bg-bg-surface">
-                      <div className="text-sm font-medium text-white truncate max-w-[180px] pb-1.5">
-                        {headerIsSaved ? "حذف از کتابخانه" : "ذخیره در کتابخانه"}
-                      </div>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-              <button className="text-white/70">
-                <MoreHorizontal className="w-7 h-7" />
-              </button>
-            </div>
-          </div>
-        </div>
+        <PlaylistHeader
+          custom={custom}
+          isLiked={isLiked}
+          headerCard={headerCard}
+          cover={cover}
+          title={title}
+          tracksLength={tracks.length}
+          fileRef={fileRef}
+          editing={editing}
+          setEditing={setEditing}
+          onCoverChange={handleCover}
+          headerIsSaved={headerIsSaved}
+        />
 
         {/* Track list */}
         <div className="px-6">
@@ -344,81 +173,20 @@ export default function PlaylistPage({ params }: Props) {
             </div>
           )}
 
-          {tracks.map((t, i) => {
-            const trackCover =
-              (t as any).cover ?? artist?.cover ?? cover ?? "/images/moein.jpg";
-            const plays = (t as any).plays ?? undefined;
-            const isActive = currentTrack?.id === t.id && isPlaying;
-            return (
-              <motion.div
-                key={t.id}
-                initial={{ opacity: 0, x: 10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: i * 0.03 }}
-                className={`group md:grid md:grid-cols-[24px_minmax(0,1fr)_minmax(0,1fr)_60px] flex items-center justify-between gap-4 rounded-sm w-full py-2 cursor-pointer hover:bg-bg-elevated`}
-                onClick={() =>
-                  setTrack({
-                    id: t.id,
-                    title: t.title,
-                    artist: (t as any).artist ?? artist?.title ?? "",
-                    cover:
-                      (t as any).cover ??
-                      artist?.cover ??
-                      cover ??
-                      "/images/moein.jpg",
-                    duration: parseDuration((t as any).duration),
-                  })
-                }>
-                <button
-                  onClick={() =>
-                    setTrack({
-                      ...(t as any),
-                      artist: (t as any).artist ?? artist?.title ?? "",
-                    })
-                  }
-                  className="hidden md:flex w-8 h-8 items-center justify-center text-text-secondary hover:text-text-primary">
-                  <span className="group-hover:hidden text-sm tabular-nums">
-                    {i + 1}
-                  </span>
-                  <Play className="hidden group-hover:block w-4 h-4 fill-current" />
-                </button>
-
-                <div className="flex items-center gap-3 min-w-0 overflow-hidden">
-                  <img
-                    src={trackCover}
-                    alt={(t as any).title}
-                    className="w-10 h-10 rounded object-cover flex-shrink-0"
-                  />
-                  <div className="min-w-0 text-right">
-                    <div
-                      className={`font-bold text-sm truncate ${isActive ? "text-accent-gold" : "text-text-primary"}`}>
-                      {t.title}
-                    </div>
-                    <div className="text-xs text-text-secondary truncate">
-                      {(t as any).artist}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="text-sm text-text-secondary tabular-nums hidden md:block">
-                  {plays ?? (t as any).album}
-                </div>
-
-                <div className="flex items-center justify-end gap-2 md:gap-4 text-text-secondary md:ml-2">
-                  <div className="hidden md:block opacity-0 group-hover:opacity-100 transition-opacity">
-                    {/* Like/Add to liked songs button for this track */}
-                    <LikeButton track={t} artistTitle={artist?.title} />
-                  </div>
-                  <span className="text-sm tabular-nums max-md:hidden">
-                    {formatDuration((t as any).duration)}
-                  </span>
-                  <button className="opacity-90 hover:text-text-primary transition-opacity">
-                    <MoreHorizontal className="w-4 h-4" />
-                  </button>
-                </div>
-              </motion.div>
-            );
-          })}
+          {tracks.map((t, i) => (
+            <PlaylistTrackRow
+              key={t.id}
+              t={t}
+              i={i}
+              artist={artist}
+              cover={cover}
+              setTrack={setTrack}
+              isPlaying={isPlaying}
+              currentTrack={currentTrack}
+              formatDuration={formatDuration}
+              parseDuration={parseDuration}
+            />
+          ))}
 
           {/* Empty state for liked playlist */}
           {isLiked && tracks.length === 0 && (
@@ -445,60 +213,15 @@ export default function PlaylistPage({ params }: Props) {
             </div>
           )}
 
-          {/* Add-songs panel */}
-          {custom && showSearch && (
-            <div className="mt-6 border-t border-border-default pt-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-2xl font-bold">
-                  بگذار چیزی برای پلی‌لیستت پیدا کنیم
-                </h2>
-                <button
-                  onClick={() => setShowSearch(false)}
-                  className="w-8 h-8 rounded-full hover:bg-bg-elevated flex items-center justify-center text-text-secondary">
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-              <div className="relative max-w-md mb-6">
-                <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-secondary" />
-                <input
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  placeholder="جستجوی آهنگ یا قسمت پادکست"
-                  className="w-full bg-bg-elevated rounded-md pr-9 pl-3 py-2.5 text-sm outline-none border border-transparent focus:border-border-strong"
-                />
-              </div>
-
-              <div className="space-y-1">
-                {filteredSuggest.map((t) => {
-                  const added = custom.tracks.some((x) => x.id === t.id);
-                  return (
-                    <div
-                      key={t.id}
-                      className="flex items-center justify-between px-3 py-2 rounded-md hover:bg-bg-elevated group">
-                      <div className="min-w-0">
-                        <div className="font-medium text-text-primary truncate">
-                          {t.title}
-                        </div>
-                        <div className="text-xs text-text-secondary truncate">
-                          {t.artist} • {t.album}
-                        </div>
-                      </div>
-                      <button
-                        disabled={added}
-                        onClick={() => addTrackToPlaylist(custom.id, t)}
-                        className={`px-4 py-1.5 rounded-full text-xs font-bold border border-border-strong transition-colors ${
-                          added
-                            ? "text-text-secondary cursor-default"
-                            : "text-text-primary hover:scale-105"
-                        }`}>
-                        {added ? "افزوده شد" : "افزودن"}
-                      </button>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
+          <AddSongsPanel
+            custom={custom}
+            showSearch={showSearch}
+            setShowSearch={setShowSearch}
+            query={query}
+            setQuery={setQuery}
+            filteredSuggest={filteredSuggest}
+            addTrackToPlaylist={addTrackToPlaylist}
+          />
         </div>
       </motion.div>
     </AppShell>
