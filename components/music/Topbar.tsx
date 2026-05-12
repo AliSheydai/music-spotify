@@ -1,7 +1,7 @@
 "use client";
 
 import NextLink from "next/link";
-import { Home, Bell, Music2 } from "lucide-react";
+import { Home, Bell, Music2, User } from "lucide-react";
 import Link from "next/link";
 import { TransitionLink } from "../view-transition";
 import React, { useEffect, useState } from "react";
@@ -66,15 +66,15 @@ export function Topbar() {
           {/* پروفایل */}
           <NextLink
             href="/profile"
-            className="flex items-center gap-2 p-1 pr-3 rounded-lg bg-white/5 border border-white/5 hover:bg-white/10 cursor-pointer transition-all"
+            className="flex items-center gap-2 p-1 rounded-lg bg-white/5 border border-white/5 hover:bg-white/10 cursor-pointer transition-all"
             aria-label="پروفایل"
           >
-            <span className="text-xs font-medium text-gray-300 hidden md:block">علی رضایی</span>
-            <Avatar className="h-8 w-8">
+            {/* <span className="text-xs font-medium text-gray-300 hidden md:block">علی رضایی</span> */}
+            <Avatar className="h-8 w-8 flex items-center justify-center">
               {imageSrc ? (
                 <AvatarImage src={imageSrc} alt="پروفایل" />
               ) : (
-                <AvatarFallback>ع</AvatarFallback>
+                <User className="w-5 h-5 text-gray-300" />
               )}
             </Avatar>
           </NextLink>
