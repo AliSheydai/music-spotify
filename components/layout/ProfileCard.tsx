@@ -39,7 +39,7 @@ const listVariants = {
 };
 const rowVariants = {
   hidden: { opacity: 0, y: 14, filter: "blur(4px)" },
-  show: { opacity: 1, y: 0, filter: "blur(0px)", transition: { duration: 0.45, ease: [0.22, 1, 0.36, 1] } },
+  show: { opacity: 1, y: 0, filter: "blur(0px)", transition: { duration: 0.45, ease: ([0.22, 1, 0.36, 1] as unknown) as any } },
 };
 
 // ─── Guest View ────────────────────────────────────────────────────────────
@@ -49,7 +49,7 @@ function GuestCard() {
       className="max-w-md mx-auto text-center"
       initial={{ opacity: 0, scale: 0.97 }}
       animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ duration: 0.5, ease: ([0.22, 1, 0.36, 1] as unknown) as any }}
     >
       <div
         className="relative rounded-2xl overflow-hidden p-10"
@@ -353,7 +353,7 @@ export function ProfileCard({
                 style={{ background: `linear-gradient(90deg, ${subColor}80, ${subColor})` }}
                 initial={{ width: 0 }}
                 animate={{ width: `${progress}%` }}
-                transition={{ duration: 1, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                transition={{ duration: 1, delay: 0.3, ease: ([0.22, 1, 0.36, 1] as unknown) as any }}
               />
             </div>
           </div>

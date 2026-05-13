@@ -351,7 +351,7 @@ export function SearchHero() {
             <motion.h1
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0  }}
-              transition={{ duration: 0.6, delay: 0.08, ease: [0.4, 0, 0.2, 1] }}
+              transition={{ duration: 0.6, delay: 0.08, ease: ([0.4, 0, 0.2, 1] as unknown) as any }}
               className="font-black text-content-primary leading-tight tracking-tight"
               style={{ fontSize: 'clamp(2rem, 5vw, 3.5rem)' }}
             >
@@ -382,7 +382,7 @@ export function SearchHero() {
           <motion.div
             initial={{ opacity: 0, y: 24, scale: 0.97 }}
             animate={{ opacity: 1, y: 0,  scale: 1    }}
-            transition={{ duration: 0.55, delay: 0.26, ease: [0.34, 1.56, 0.64, 1] }}
+            transition={{ duration: 0.55, delay: 0.26, ease: ([0.34, 1.56, 0.64, 1] as unknown) as any }}
             className="w-full relative"
           >
             {/* glow effect هنگام focus */}

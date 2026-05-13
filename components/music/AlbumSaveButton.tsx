@@ -40,7 +40,7 @@ const AlbumSaveButton = React.forwardRef<HTMLButtonElement, { card: any } & Reac
       onClick={handle}
       whileTap={{ scale: 0.92 }}
       className={`${baseClass} ${cls ?? ""}`}
-      {...rest}>
+      {...(rest as any)}>
       <AnimatePresence mode="wait">
         {isSaved ? (
           <motion.span

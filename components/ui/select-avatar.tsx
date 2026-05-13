@@ -200,13 +200,13 @@ export default function AvatarPicker({ onConfirm, onCancel }: AvatarPickerProps)
                     <div className="px-8 pb-8 -mt-16">
                         <motion.div
                             className="relative w-40 h-40 mx-auto rounded-full overflow-hidden border-4 bg-background flex items-center justify-center"
-                            variants={mainAvatarVariants}
+                            variants={mainAvatarVariants as any}
                             layoutId="selectedAvatar"
                         >
                             <motion.div
                                 className="w-full h-full flex items-center justify-center scale-[3]"
                                 animate={{ rotate: rotationCount }}
-                                transition={{ duration: 0.8, ease: [0.4, 0, 0.2, 1] }}
+                                transition={{ duration: 0.8, ease: ([0.4, 0, 0.2, 1] as unknown) as any }}
                             >
                                 <div
                                     className="w-full h-full flex items-center justify-center"
@@ -215,13 +215,13 @@ export default function AvatarPicker({ onConfirm, onCancel }: AvatarPickerProps)
                             </motion.div>
                         </motion.div>
 
-                        <motion.div className="text-center mt-4" variants={pickerVariants.item}>
+                        <motion.div className="text-center mt-4" variants={pickerVariants.item as any}>
                             <h2 className="text-2xl font-bold">من</h2>
                             <p className="text-muted-foreground text-sm">آواتار خودت رو انتخاب کن</p>
                         </motion.div>
 
                         {/* لیست انتخاب آواتارها */}
-                        <motion.div className="mt-6" variants={pickerVariants.container}>
+                        <motion.div className="mt-6" variants={pickerVariants.container as any}>
                             <div className="flex justify-center gap-4">
                                 {avatars.map((avatar) => (
                                     <motion.button
@@ -231,7 +231,7 @@ export default function AvatarPicker({ onConfirm, onCancel }: AvatarPickerProps)
                                             "relative w-12 h-12 rounded-full overflow-hidden border-2",
                                             selectedAvatar.id === avatar.id ? "border-primary" : "border-transparent"
                                         )}
-                                        variants={pickerVariants.item}
+                                        variants={pickerVariants.item as any}
                                         whileHover={{ y: -2 }}
                                         whileTap={{ scale: 0.95 }}
                                     >

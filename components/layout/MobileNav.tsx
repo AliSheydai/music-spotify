@@ -99,7 +99,7 @@ export function MobileNav() {
                 {/* آیکون + dot */}
                 <div className="relative flex items-center justify-center">
                   <motion.div
-                    variants={iconVariants}
+                    variants={iconVariants as any}
                     animate={active ? 'active' : 'inactive'}
                   >
                     <Icon

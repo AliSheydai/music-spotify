@@ -37,7 +37,7 @@ const itemVariants = {
     opacity: 1,
     y: 0,
     filter: "blur(0px)",
-    transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] },
+    transition: { duration: 0.5, ease: ([0.22, 1, 0.36, 1] as unknown) as any },
   },
 };
 
@@ -112,7 +112,7 @@ export default function PhonePage() {
           style={{ background: "linear-gradient(90deg, #C9A84C, #8B5CF6, #C9A84C)" }}
           initial={{ scaleX: 0, transformOrigin: "left" }}
           animate={{ scaleX: 1 }}
-          transition={{ duration: 0.8, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: 0.8, delay: 0.3, ease: ([0.22, 1, 0.36, 1] as unknown) as any }}
         />
 
         <div className="p-8">
