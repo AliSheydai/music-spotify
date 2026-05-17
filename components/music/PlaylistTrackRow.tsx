@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { Play, MoreHorizontal } from "lucide-react";
 import LikeButton from "@/components/music/LikeButton";
+import { normalizePlayableQueue, normalizePlayableTrack } from "@/lib/music-catalog";
 
 export default function PlaylistTrackRow({
   t,
@@ -10,6 +11,7 @@ export default function PlaylistTrackRow({
   artist,
   cover,
   setTrack,
+  queue,
   isPlaying,
   currentTrack,
   formatDuration,
@@ -19,7 +21,8 @@ export default function PlaylistTrackRow({
   i: number;
   artist: any;
   cover?: string;
-  setTrack: (t: any) => void;
+  setTrack: (t: any, queue?: any[]) => void;
+  queue?: any[];
   isPlaying: boolean;
   currentTrack: any;
   formatDuration: (d: any) => string;
@@ -27,7 +30,18 @@ export default function PlaylistTrackRow({
 }) {
   const trackCover = t.cover ?? artist?.cover ?? cover ?? "/images/moein.jpg";
   const plays = t.plays ?? undefined;
-  const isActive = currentTrack?.id === t.id && isPlaying;
+  const playableTrack = normalizePlayableTrack(
+    { ...t, cover: trackCover, artist: t.artist ?? artist?.title ?? "" },
+    { cover: trackCover, artist: artist?.title ?? "" },
+  );
+  const playableQueue = normalizePlayableQueue(queue?.length ? queue : [playableTrack], {
+    cover: trackCover,
+    artist: artist?.title ?? "",
+  });
+  const isCurrent = currentTrack?.id === t.id;
+  const isActive = isCurrent && isPlaying;
+
+  const playThisTrack = () => setTrack(playableTrack, playableQueue);
 
   return (
     <motion.div
@@ -35,22 +49,9 @@ export default function PlaylistTrackRow({
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: i * 0.03 }}
       className={`group md:grid md:grid-cols-[24px_minmax(0,1fr)_minmax(0,1fr)_60px] flex items-center justify-between gap-4 rounded-sm w-full py-2 cursor-pointer hover:bg-bg-elevated`}
-      onClick={() =>
-        setTrack({
-          id: t.id,
-          title: t.title,
-          artist: t.artist ?? artist?.title ?? "",
-          cover: trackCover,
-          duration: parseDuration(t.duration),
-        })
-      }>
+      onClick={playThisTrack}>
       <button
-        onClick={() =>
-          setTrack({
-            ...(t as any),
-            artist: t.artist ?? artist?.title ?? "",
-          })
-        }
+        onClick={playThisTrack}
         className="hidden md:flex w-8 h-8 items-center justify-center text-text-secondary hover:text-text-primary">
         <span className="group-hover:hidden text-sm tabular-nums">{i + 1}</span>
         <Play className="hidden group-hover:block w-4 h-4 fill-current" />
@@ -60,7 +61,7 @@ export default function PlaylistTrackRow({
         <img src={trackCover} alt={t.title} className="w-10 h-10 rounded object-cover flex-shrink-0" />
         <div className="min-w-0 text-right">
           <div className={`font-bold text-sm truncate ${isActive ? "text-accent-gold" : "text-text-primary"}`}>{t.title}</div>
-          <div className="text-xs text-text-secondary truncate">{t.artist}</div>
+          <div className="text-xs text-text-secondary truncate">{playableTrack.artist}</div>
         </div>
       </div>
 

@@ -15,6 +15,7 @@ import PlaylistTrackRow from "@/components/music/PlaylistTrackRow";
 import AddSongsPanel from "@/components/music/AddSongsPanel";
 // tooltip primitives removed from this page (used in shared UI components)
 import { TransitionLink } from "@/components/view-transition";
+import { normalizePlayableQueue } from "@/lib/music-catalog";
 
 // AlbumSaveButton and header/rows extracted to components in components/music/
 
@@ -149,9 +150,13 @@ export default function PlaylistPage({ params }: Props) {
   const { data: artistData } = useArtist(id);
   const artist = artistData?.artist ?? undefined;
   useCurrentTrack();
-  const setTrack = usePlayerStore((s) => s.setTrack);
+  const playTrack = usePlayerStore((s) => s.playTrack);
   const currentTrack = usePlayerStore((s) => s.track);
   const isPlaying = usePlayerStore((s) => s.isPlaying);
+  const playableTracks = normalizePlayableQueue(tracks as any[], {
+    cover: cover ?? artist?.cover ?? "/images/moein.jpg",
+    artist: artist?.title ?? "",
+  });
   
 
   return (
@@ -191,14 +196,15 @@ export default function PlaylistPage({ params }: Props) {
             </div>
           )}
 
-          {tracks.map((t, i) => (
+          {playableTracks.map((t, i) => (
             <PlaylistTrackRow
               key={t.id}
               t={t}
               i={i}
               artist={artist}
               cover={cover}
-              setTrack={setTrack}
+              setTrack={playTrack}
+              queue={playableTracks}
               isPlaying={isPlaying}
               currentTrack={currentTrack}
               formatDuration={formatDuration}

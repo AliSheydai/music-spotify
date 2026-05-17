@@ -1,3 +1,5 @@
+"use client";
+
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Play,
@@ -36,6 +38,8 @@ function MobileHeart({ track }: { track: any }) {
       artist: track.artist ?? "",
       album: track.album ?? "",
       duration: String(track.duration ?? ""),
+      cover: track.cover,
+      src: track.src,
     });
 
     if (willBeLiked) {
@@ -87,6 +91,8 @@ export function Player() {
     setProgress,
     volume,
     setVolume,
+    playNext,
+    playPrevious,
   } = usePlayerStore();
   const toggleNowPlaying = usePlayerStore((s) => s.toggleNowPlaying);
   const nowPlayingOpen = usePlayerStore((s) => s.nowPlayingOpen);
@@ -100,18 +106,63 @@ export function Player() {
   const [prevVolume, setPrevVolume] = useState(volume);
   const isMobile = useIsMobile();
 
-  // Auto-advance progress when playing (UI only)
+  const audioRef = useRef<HTMLAudioElement>(null);
   useEffect(() => {
-    if (!isPlaying) return;
-    const id = setInterval(() => {
-      const cur = usePlayerStore.getState().progress;
-      const next = cur + 1 / track.duration;
-      usePlayerStore.getState().setProgress(next >= 1 ? 0 : next);
-    }, 1000);
-    return () => clearInterval(id);
-  }, [isPlaying, track.duration]);
+    const audio = audioRef.current;
+    if (!audio) return;
+    audio.volume = volume;
+  }, [volume]);
 
-  const current = progress * track.duration;
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    if (isPlaying) {
+      void audio.play().catch(() => {
+        usePlayerStore.setState({ isPlaying: false });
+      });
+    } else {
+      audio.pause();
+    }
+  }, [isPlaying, track.src]);
+
+  const audioDuration = audioRef.current?.duration && Number.isFinite(audioRef.current.duration)
+    ? audioRef.current.duration
+    : track.duration;
+  const current = progress * audioDuration;
+
+  const handleSeek = (value: number) => {
+    setProgress(value);
+    const audio = audioRef.current;
+    if (!audio || !Number.isFinite(audio.duration)) return;
+    audio.currentTime = value * audio.duration;
+  };
+
+  const handleTimeUpdate = () => {
+    const audio = audioRef.current;
+    if (!audio || !Number.isFinite(audio.duration) || audio.duration === 0) return;
+    setProgress(audio.currentTime / audio.duration);
+  };
+
+  const handleEnded = () => {
+    if (repeat === "one") {
+      handleSeek(0);
+      void audioRef.current?.play();
+      return;
+    }
+
+    if (shuffle) {
+      const { queue, playTrack } = usePlayerStore.getState();
+      const next = queue[Math.floor(Math.random() * queue.length)];
+      if (next) playTrack(next, queue);
+      return;
+    }
+    if (repeat === "all" || usePlayerStore.getState().currentIndex < usePlayerStore.getState().queue.length - 1) {
+      playNext();
+    } else {
+      usePlayerStore.setState({ isPlaying: false, progress: 0 });
+    }
+  };
 
   const handleRepeat = () => {
     setRepeat((r) => (r === "off" ? "all" : r === "all" ? "one" : "off"));
@@ -128,10 +179,22 @@ export function Player() {
 
   const VolumeIcon = volume === 0 ? VolumeX : volume < 0.5 ? Volume1 : Volume2;
 
+  const audioElement = (
+    <audio
+      ref={audioRef}
+      src={track.src}
+      preload="metadata"
+      onTimeUpdate={handleTimeUpdate}
+      onEnded={handleEnded}
+      onLoadedMetadata={handleTimeUpdate}
+    />
+  );
+
   // Mobile fullscreen player
   if (isMobile) {
     return (
       <>
+      {audioElement}
         {/* Mobile mini player */}
         <AnimatePresence>
           {!nowPlayingFullscreen && (
@@ -288,7 +351,7 @@ export function Player() {
               <div className="px-6 pb-4">
                 <ProgressSlider
                   value={progress}
-                  onChange={setProgress}
+                  onChange={handleSeek}
                   accent
                 />
                 <div className="flex justify-between mt-1.5 text-[11px] text-white/40 tabular-nums">
@@ -308,7 +371,7 @@ export function Player() {
 
                 <motion.button
                   whileTap={{ scale: 0.85 }}
-                  onClick={() => setProgress(0)}
+                  onClick={playPrevious}
                   className="text-white hover:text-white/80 transition-colors">
                   <SkipForward className="w-7 h-7" />
                 </motion.button>
@@ -343,7 +406,7 @@ export function Player() {
 
                 <motion.button
                   whileTap={{ scale: 0.85 }}
-                  onClick={() => setProgress(0)}
+                  onClick={playNext}
                   className="text-white hover:text-white/80 transition-colors">
                   <SkipBack className="w-7 h-7" />
                 </motion.button>
@@ -394,6 +457,8 @@ export function Player() {
 
   // Desktop player (original UI, with functional buttons)
   return (
+    <>
+      {audioElement}
     <footer className="h-[88px] shrink-0 bg-bg-base border-t border-border-default px-4 grid grid-cols-3 items-center gap-4 shadow-[var(--shadow-player)]">
       {/* Track info */}
       <div className="flex items-center gap-3 min-w-0">
@@ -434,11 +499,9 @@ export function Player() {
 
           <motion.button
             whileTap={{ scale: 0.85 }}
-            onClick={() =>
-              setProgress(Math.max(0, progress - (1 / track.duration) * 10))
-            }
+            onClick={playPrevious}
             className="text-text-secondary hover:text-text-primary transition-colors">
-            <SkipBack className="w-5 h-5" />
+            <SkipForward className="w-5 h-5"/>
           </motion.button>
 
           <motion.button
@@ -471,11 +534,9 @@ export function Player() {
 
           <motion.button
             whileTap={{ scale: 0.85 }}
-            onClick={() =>
-              setProgress(Math.min(1, progress + (1 / track.duration) * 10))
-            }
+            onClick={playNext}
             className="text-text-secondary hover:text-text-primary transition-colors">
-            <SkipForward className="w-5 h-5" />
+            <SkipBack className="w-5 h-5" />
           </motion.button>
 
           <motion.button
@@ -493,8 +554,8 @@ export function Player() {
 
         <div className="flex items-center gap-2 w-full max-w-[500px] text-[10px] text-text-secondary">
           <span className="w-9 text-right tabular-nums">{fmt(current)}</span>
-          <ProgressSlider value={progress} onChange={setProgress} />
-          <span className="w-9 tabular-nums">{fmt(track.duration)}</span>
+          <ProgressSlider value={progress} onChange={handleSeek} />
+          <span className="w-9 tabular-nums">{fmt(audioDuration)}</span>
         </div>
       </div>
 
@@ -525,6 +586,7 @@ export function Player() {
         </button>
       </div>
     </footer>
+    </>
   );
 }
 

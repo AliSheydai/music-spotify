@@ -8,16 +8,19 @@ import FollowButton from "@/components/music/FollowButton";
 export default function ArtistHero({
   artist,
   setTrack,
+  tracks,
   onOpenBio,
 }: {
   artist: any;
-  setTrack: (t: any) => void;
+  setTrack: (t: any, queue?: any[]) => void;
+  tracks?: any[];
   onOpenBio: () => void;
 }) {
   const seed = artist.id?.split("").reduce((a: number, c: string) => a + c.charCodeAt(0), 0) ?? 0;
   const hue = (seed * 47) % 360;
   const tint = `hsl(${hue}, 42%, 22%)`;
   const tintSoft = `hsl(${hue}, 38%, 14%)`;
+  const firstTrack = tracks?.[0];
 
   return (
     <div
@@ -54,6 +57,7 @@ export default function ArtistHero({
           <motion.button
             whileHover={{ scale: 1.06 }}
             whileTap={{ scale: 0.94 }}
+            onClick={() => firstTrack && setTrack(firstTrack, tracks)}
             className="w-14 h-14 rounded-full bg-accent-gold text-bg-base flex items-center justify-center shadow-[var(--shadow-glow-gold)] cursor-pointer">
             <Play className="w-6 h-6 fill-current mr-0.5" />
           </motion.button>

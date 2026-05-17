@@ -28,6 +28,8 @@ export default function LikeButton({
       artist: artistTitle ?? track.artist ?? "",
       album: track.album ?? "",
       duration: String(track.duration ?? ""),
+      cover: track.cover,
+      src: track.src,
     });
 
     if (willBeLiked) {

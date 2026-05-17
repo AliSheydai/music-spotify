@@ -10,6 +10,7 @@ import { usePlayerStore } from "@/store/player-store";
 import ArtistHero from "@/components/music/ArtistHero";
 import ArtistTrackRow from "@/components/music/ArtistTrackRow";
 import ArtistBioModal from "@/components/music/ArtistBioModal";
+import { normalizePlayableQueue } from "@/lib/music-catalog";
 // در Next.js پارامترها به این صورت دریافت می‌شوند
 
 export default function ArtistPage() {
@@ -28,7 +29,7 @@ export default function ArtistPage() {
       type: "artist",
     };
   const [bioOpen, setBioOpen] = useState(false);
-  const setTrack = usePlayerStore((s) => s.setTrack);
+  const playTrack = usePlayerStore((s) => s.playTrack);
 
   const popularTracks = (homeData?.albums ?? Array.from({ length: 5 })).map(
     (alb, i) => ({
@@ -40,12 +41,18 @@ export default function ArtistPage() {
         ["۶٬۴۶۳٬۶۰۴", "۳٬۲۷۱٬۵۱۰", "۲٬۳۷۱٬۵۶۳", "۲٬۵۲۱٬۰۵۶", "۸۰۹٬۰۷۸"][i] ??
         "",
       duration: [314, 345, 238, 379, 165][i] ?? 200,
+      artist: artist.title,
       cover:
         homeData?.albums?.[i]?.cover ??
         homeData?.albums?.[0]?.cover ??
+        artist.cover ??
         "/images/moein.jpg",
     }),
   );
+  const playablePopularTracks = normalizePlayableQueue(popularTracks, {
+    artist: artist.title,
+    cover: artist.cover,
+  });
 
   const artistBio = `${artist.title} از چهره‌های شناخته‌شده موسیقی فارسی است...`;
   const formatDuration = (sec: number) => `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, "0")}`;
@@ -65,13 +72,13 @@ export default function ArtistPage() {
         style={{
           background: `linear-gradient(180deg, ${tint} 0%, ${tintSoft} 360px, var(--bg-surface) 720px)`,
         }}>
-        <ArtistHero artist={artist} setTrack={setTrack} onOpenBio={() => setBioOpen(true)} />
+        <ArtistHero artist={artist} setTrack={playTrack} tracks={playablePopularTracks} onOpenBio={() => setBioOpen(true)} />
 
         <section className="px-6 py-8">
           <h2 className="text-2xl font-black mb-4">محبوب‌ترین‌ها</h2>
           <div className="max-w-5xl space-y-1" dir="rtl">
-            {popularTracks.map((track, index) => (
-              <ArtistTrackRow key={track.id} track={track} index={index} artist={artist} setTrack={setTrack} />
+            {playablePopularTracks.map((track, index) => (
+              <ArtistTrackRow key={track.id} track={track} index={index} artist={artist} setTrack={playTrack} queue={playablePopularTracks} />
             ))}
           </div>
           <button className="mt-4 text-sm font-bold text-text-secondary hover:text-text-primary">

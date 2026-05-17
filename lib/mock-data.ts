@@ -4,6 +4,8 @@ export type Track = {
   artist: string;
   cover: string;
   duration: number;
+  src?: string;
+  album?: string;
 };
 
 export type Card = {
@@ -135,5 +137,6 @@ export const currentTrack: Track = {
   title: "چتر خیس",
   artist: "محسن چاوشی",
   cover: "/images/moein.jpg",
+  src: "/music/local-track-1.wav",
   duration: 245,
 };

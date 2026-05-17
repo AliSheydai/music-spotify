@@ -14,6 +14,8 @@ export type CustomTrack = {
   artist: string;
   album: string;
   duration: string;
+  cover?: string;
+  src?: string;
 };
 
 export type CustomPlaylist = {

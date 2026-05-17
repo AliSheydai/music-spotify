@@ -8,6 +8,7 @@ import {
   type Card,
   type Track,
 } from "./mock-data";
+import { withLocalAudioSource } from "./music-catalog";
 
 // This file provides an API-like adapter around the existing mock-data.
 // When backend is ready, replace implementations with real fetch calls.
@@ -31,16 +32,18 @@ export async function fetchPlaylistById(id: string): Promise<{ card: Card | null
   // if the card already contains tracks (e.g. album mock-data), use them
   let tracks: Track[];
   if (card && (card as any).tracks && Array.isArray((card as any).tracks)) {
-    tracks = (card as any).tracks as Track[];
+    tracks = ((card as any).tracks as Track[]).map(withLocalAudioSource);
   } else {
     // simple synthetic tracks for demo
-    tracks = Array.from({ length: 8 }).map((_, i) => ({
-      id: `${id}-t${i}`,
-      title: `قطعه ${i + 1}`,
-      artist: artistCards[i % artistCards.length].title,
-      cover: card?.cover ?? "/images/moein.jpg",
-      duration: 180 + i * 10,
-    }));
+    tracks = Array.from({ length: 8 }).map((_, i) =>
+      withLocalAudioSource({
+        id: `${id}-t${i}`,
+        title: `قطعه ${i + 1}`,
+        artist: artistCards[i % artistCards.length].title,
+        cover: card?.cover ?? "/images/moein.jpg",
+        duration: 180 + i * 10,
+      }),
+    );
   }
 
   return { card, tracks };
@@ -59,7 +62,7 @@ export async function fetchSidebarItems() {
 
 export async function fetchCurrentTrack(): Promise<Track> {
   await new Promise((r) => setTimeout(r, 10));
-  return currentTrack;
+  return withLocalAudioSource(currentTrack);
 }
 
 // Stub to sync liked tracks with a backend. Non-blocking and best-effort.
