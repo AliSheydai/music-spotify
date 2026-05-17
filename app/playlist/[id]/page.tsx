@@ -7,21 +7,21 @@ import React, { useRef, useState, use } from "react";
 import { AppShell } from "@/components/music/AppShell";
 import { usePlaylist, useArtist, useCurrentTrack } from "@/lib/hooks";
 import { usePlayerStore } from "@/store/player-store";
-import { useLibraryStore } from "@/store/library-store";
+import { useLibraryStore, type CustomTrack } from "@/store/library-store";
 import Link from "next/link";
 // LikeButton used inside track rows; imported by row component
 import PlaylistHeader from "@/components/music/PlaylistHeader";
 import PlaylistTrackRow from "@/components/music/PlaylistTrackRow";
 import AddSongsPanel from "@/components/music/AddSongsPanel";
 // tooltip primitives removed from this page (used in shared UI components)
-import { TransitionLink } from "@/components/view-transition";
-import { normalizePlayableQueue } from "@/lib/music-catalog";
+import { normalizePlayableQueue, type PlayableTrackInput } from "@/lib/music-catalog";
+import type { Card } from "@/lib/mock-data";
 
 // AlbumSaveButton and header/rows extracted to components in components/music/
 
 // نمونه دیتا محلی برای زمانی که API داده‌ای برنگرداند
 
-const sampleTracks = Array.from({ length: 10 }).map((_, i) => ({
+const sampleTracks: PlayableTrackInput[] = Array.from({ length: 10 }).map((_, i) => ({
   id: `t${i}`,
   title: [
     "چتر خیس",
@@ -56,13 +56,17 @@ export default function PlaylistPage({ params }: Props) {
   const router = useRouter();
 
   const handleBack = async () => {
-    if (typeof document !== "undefined" && (document as any).startViewTransition) {
+    const viewTransitionDocument = document as Document & {
+      startViewTransition?: (callback: () => Promise<void>) => { finished: Promise<void> };
+    };
+
+    if (viewTransitionDocument.startViewTransition) {
       try {
-        await (document as any).startViewTransition(() => {
+        await viewTransitionDocument.startViewTransition(() => {
           router.back();
           return Promise.resolve();
         });
-      } catch (e) {
+      } catch {
         router.back();
       }
     } else {
@@ -102,14 +106,13 @@ export default function PlaylistPage({ params }: Props) {
     : (playlistData?.tracks ?? sampleTracks);
 
   // headerCard represents the item shown in the header (playlist/album)
-  const headerCard: any = card ?? {
+  const headerCard: Card = card ?? {
     id,
     title,
     subtitle: "",
     cover: cover ?? "",
-    type: isLiked ? "playlist" : ((card as any)?.type ?? "album"),
+    type: isLiked ? "playlist" : "album",
   };
-  const headerIsSaved = useLibraryStore((s) => s.isAlbumSaved(headerCard.id));
 
   const handleCover = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -123,7 +126,7 @@ export default function PlaylistPage({ params }: Props) {
   };
 
   const filteredSuggest = sampleTracks.filter(
-    (t) => !query.trim() || t.title.includes(query) || t.artist.includes(query),
+    (t) => !query.trim() || (t.title ?? "").includes(query) || (t.artist ?? "").includes(query),
   );
 
   const formatDuration = (d: number | string) => {
@@ -153,7 +156,7 @@ export default function PlaylistPage({ params }: Props) {
   const playTrack = usePlayerStore((s) => s.playTrack);
   const currentTrack = usePlayerStore((s) => s.track);
   const isPlaying = usePlayerStore((s) => s.isPlaying);
-  const playableTracks = normalizePlayableQueue(tracks as any[], {
+  const playableTracks = normalizePlayableQueue(tracks as Array<PlayableTrackInput | CustomTrack>, {
     cover: cover ?? artist?.cover ?? "/images/moein.jpg",
     artist: artist?.title ?? "",
   });
@@ -182,7 +185,7 @@ export default function PlaylistPage({ params }: Props) {
           editing={editing}
           setEditing={setEditing}
           onCoverChange={handleCover}
-          headerIsSaved={headerIsSaved}
+          tracks={playableTracks}
         />
 
         {/* Track list */}

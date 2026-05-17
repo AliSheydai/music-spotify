@@ -23,8 +23,9 @@ import { useLibraryStore } from "../../store/library-store";
 import LikeButton from "./LikeButton";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import type { Track } from "@/lib/mock-data";
 
-function MobileHeart({ track }: { track: any }) {
+function MobileHeart({ track }: { track: Track }) {
   const router = useRouter();
   const liked = useLibraryStore((s) => s.likedTracks.some((x) => x.id === track.id));
   const toggleLikedTrack = useLibraryStore((s) => s.toggleLikedTrack);
@@ -104,9 +105,20 @@ export function Player() {
   const [shuffle, setShuffle] = useState(false);
   const [repeat, setRepeat] = useState<"off" | "all" | "one">("off");
   const [prevVolume, setPrevVolume] = useState(volume);
+  const [loadedAudio, setLoadedAudio] = useState<{ src?: string; duration: number }>({
+    duration: track.duration,
+  });
   const isMobile = useIsMobile();
 
   const audioRef = useRef<HTMLAudioElement>(null);
+
+  const restoredSrcRef = useRef<string | undefined>(undefined);
+  const resumeProgressRef = useRef(progress);
+  useEffect(() => {
+    resumeProgressRef.current = usePlayerStore.getState().progress;
+    restoredSrcRef.current = undefined;
+  }, [track.src]);
+
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
@@ -126,9 +138,7 @@ export function Player() {
     }
   }, [isPlaying, track.src]);
 
-  const audioDuration = audioRef.current?.duration && Number.isFinite(audioRef.current.duration)
-    ? audioRef.current.duration
-    : track.duration;
+  const audioDuration = loadedAudio.src === track.src ? loadedAudio.duration : track.duration;
   const current = progress * audioDuration;
 
   const handleSeek = (value: number) => {
@@ -136,6 +146,37 @@ export function Player() {
     const audio = audioRef.current;
     if (!audio || !Number.isFinite(audio.duration)) return;
     audio.currentTime = value * audio.duration;
+  };
+
+  const restoreAudioPosition = () => {
+    const audio = audioRef.current;
+    if (!audio || !Number.isFinite(audio.duration) || audio.duration === 0) return;
+
+    if (restoredSrcRef.current === track.src) return;
+    restoredSrcRef.current = track.src;
+
+    const resumeProgress = resumeProgressRef.current;
+    if (resumeProgress <= 0) return;
+
+    const targetTime = Math.min(resumeProgress * audio.duration, Math.max(audio.duration - 0.25, 0));
+    if (targetTime > 0 && Math.abs(audio.currentTime - targetTime) > 0.5) {
+      audio.currentTime = targetTime;
+    }
+  };
+
+  const handleLoadedMetadata = () => {
+    const audio = audioRef.current;
+    if (audio && Number.isFinite(audio.duration) && audio.duration > 0) {
+      setLoadedAudio({ src: track.src, duration: audio.duration });
+    }
+
+    restoreAudioPosition();
+
+    if (isPlaying) {
+      void audioRef.current?.play().catch(() => {
+        usePlayerStore.setState({ isPlaying: false });
+      });
+    }
   };
 
   const handleTimeUpdate = () => {
@@ -186,7 +227,7 @@ export function Player() {
       preload="metadata"
       onTimeUpdate={handleTimeUpdate}
       onEnded={handleEnded}
-      onLoadedMetadata={handleTimeUpdate}
+      onLoadedMetadata={handleLoadedMetadata}
     />
   );
 

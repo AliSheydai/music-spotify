@@ -1,26 +1,42 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Play, BadgeCheck, ArrowLeft } from "lucide-react";
+import { Pause, Play, BadgeCheck, ArrowLeft } from "lucide-react";
 import { TransitionLink } from "@/components/view-transition";
 import FollowButton from "@/components/music/FollowButton";
+import { usePlayerStore } from "@/store/player-store";
+import { isTrackInQueue } from "@/lib/playback-context";
+import type { Card, Track } from "@/lib/mock-data";
 
 export default function ArtistHero({
   artist,
   setTrack,
   tracks,
-  onOpenBio,
 }: {
-  artist: any;
-  setTrack: (t: any, queue?: any[]) => void;
-  tracks?: any[];
+  artist: Card;
+  setTrack: (track: Track, queue?: Track[]) => void;
+  tracks?: Track[];
   onOpenBio: () => void;
 }) {
   const seed = artist.id?.split("").reduce((a: number, c: string) => a + c.charCodeAt(0), 0) ?? 0;
   const hue = (seed * 47) % 360;
-  const tint = `hsl(${hue}, 42%, 22%)`;
   const tintSoft = `hsl(${hue}, 38%, 14%)`;
   const firstTrack = tracks?.[0];
+  const currentTrack = usePlayerStore((state) => state.track);
+  const isPlaying = usePlayerStore((state) => state.isPlaying);
+  const togglePlay = usePlayerStore((state) => state.togglePlay);
+  const isCurrentQueue = isTrackInQueue(currentTrack.id, tracks ?? []);
+
+  const handlePlayClick = () => {
+    if (!firstTrack) return;
+
+    if (isCurrentQueue) {
+      togglePlay();
+      return;
+    }
+
+    setTrack(firstTrack, tracks);
+  };
 
   return (
     <div
@@ -57,9 +73,15 @@ export default function ArtistHero({
           <motion.button
             whileHover={{ scale: 1.06 }}
             whileTap={{ scale: 0.94 }}
-            onClick={() => firstTrack && setTrack(firstTrack, tracks)}
-            className="w-14 h-14 rounded-full bg-accent-gold text-bg-base flex items-center justify-center shadow-[var(--shadow-glow-gold)] cursor-pointer">
-            <Play className="w-6 h-6 fill-current mr-0.5" />
+            onClick={handlePlayClick}
+            disabled={!firstTrack}
+            aria-label={isCurrentQueue && isPlaying ? "توقف پخش آهنگ‌های هنرمند" : "پخش آهنگ‌های هنرمند"}
+            className="w-14 h-14 rounded-full bg-accent-gold text-bg-base flex items-center justify-center shadow-[var(--shadow-glow-gold)] cursor-pointer disabled:cursor-not-allowed disabled:opacity-60">
+            {isCurrentQueue && isPlaying ? (
+              <Pause className="w-6 h-6 fill-current" />
+            ) : (
+              <Play className="w-6 h-6 fill-current mr-0.5" />
+            )}
           </motion.button>
 
           <FollowButton artist={artist} />

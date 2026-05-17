@@ -37,9 +37,16 @@ export function withLocalAudioSource<T extends { id: string; src?: string }>(tra
   };
 }
 
+export type PlayableTrackInput = Omit<Partial<Track>, "duration"> & {
+  id: string;
+  duration?: number | string;
+  plays?: string;
+  album?: string;
+};
+
 export function normalizePlayableTrack(
-  track: Partial<Track> & { id: string; duration?: number | string; plays?: string; album?: string },
-  fallback?: Partial<Track>,
+  track: PlayableTrackInput,
+  fallback?: Omit<Partial<Track>, "duration"> & { duration?: number | string },
 ): Track {
   const id = track.id;
   return withLocalAudioSource({
@@ -53,8 +60,8 @@ export function normalizePlayableTrack(
 }
 
 export function normalizePlayableQueue(
-  tracks: Array<Partial<Track> & { id: string; duration?: number | string; plays?: string; album?: string }>,
-  fallback?: Partial<Track>,
+  tracks: PlayableTrackInput[],
+  fallback?: Omit<Partial<Track>, "duration"> & { duration?: number | string },
 ) {
   return tracks.map((track) => normalizePlayableTrack(track, fallback));
 }

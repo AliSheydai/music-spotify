@@ -24,7 +24,7 @@ export default function ProfilePage() {
   };
 
   return (
-    <AppShell withPadding={true}>
+    // <AppShell withPadding={true}>
       <div className="max-w-3xl mx-auto py-8 relative">
         {/* Mobile back button */}
         <button
@@ -49,6 +49,6 @@ export default function ProfilePage() {
         */}
         <ProfileCard name="علی رضایی" daysLeft={18} />
       </div>
-    </AppShell>
+    // </AppShell>
   );
 }

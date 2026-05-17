@@ -10,12 +10,12 @@ import { usePlayerStore } from "@/store/player-store";
 import ArtistHero from "@/components/music/ArtistHero";
 import ArtistTrackRow from "@/components/music/ArtistTrackRow";
 import ArtistBioModal from "@/components/music/ArtistBioModal";
-import { normalizePlayableQueue } from "@/lib/music-catalog";
+import { buildArtistPlaybackQueue } from "@/lib/playback-context";  
 // در Next.js پارامترها به این صورت دریافت می‌شوند
 
 export default function ArtistPage() {
   const params = useParams();
-  const id = (params && (params as any).id) || "";
+  const id = typeof params?.id === "string" ? params.id : "";
 
   // منطق دریافت هنرمند و محتوای مرتبط از TanStack Query
   const { data: artistData } = useArtist(id);
@@ -31,31 +31,10 @@ export default function ArtistPage() {
   const [bioOpen, setBioOpen] = useState(false);
   const playTrack = usePlayerStore((s) => s.playTrack);
 
-  const popularTracks = (homeData?.albums ?? Array.from({ length: 5 })).map(
-    (alb, i) => ({
-      id: `${artist.id}-t${i + 1}`,
-      title:
-        ["بی‌قرار", "شاید", "باران", "دل دیوانه", "خاطره‌ها"][i] ??
-        `قطعه ${i + 1}`,
-      plays:
-        ["۶٬۴۶۳٬۶۰۴", "۳٬۲۷۱٬۵۱۰", "۲٬۳۷۱٬۵۶۳", "۲٬۵۲۱٬۰۵۶", "۸۰۹٬۰۷۸"][i] ??
-        "",
-      duration: [314, 345, 238, 379, 165][i] ?? 200,
-      artist: artist.title,
-      cover:
-        homeData?.albums?.[i]?.cover ??
-        homeData?.albums?.[0]?.cover ??
-        artist.cover ??
-        "/images/moein.jpg",
-    }),
-  );
-  const playablePopularTracks = normalizePlayableQueue(popularTracks, {
-    artist: artist.title,
-    cover: artist.cover,
-  });
+  const playablePopularTracks = buildArtistPlaybackQueue(artist);
 
   const artistBio = `${artist.title} از چهره‌های شناخته‌شده موسیقی فارسی است...`;
-  const formatDuration = (sec: number) => `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, "0")}`;
+  // const formatDuration = (sec: number) => `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, "0")}`;
 
   const seed = artist.id.split("").reduce((a, c) => a + c.charCodeAt(0), 0);
   const hue = (seed * 47) % 360;

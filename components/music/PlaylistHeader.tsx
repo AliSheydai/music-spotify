@@ -1,10 +1,14 @@
 "use client";
 
 import React from "react";
-import { Music, Heart, Pencil, BadgeCheck } from "lucide-react";
+import { Music, Heart, Pencil, Pause, Play } from "lucide-react";
 import { TransitionLink } from "@/components/view-transition";
 import AlbumSaveButton from "@/components/music/AlbumSaveButton";
 import { ArrowLeft } from "lucide-react";
+import { usePlayerStore } from "@/store/player-store";
+import { isTrackInQueue } from "@/lib/playback-context";
+import type { Card, Track } from "@/lib/mock-data";
+import type { CustomPlaylist } from "@/store/library-store";
 
 export default function PlaylistHeader({
   custom,
@@ -15,22 +19,40 @@ export default function PlaylistHeader({
   tracksLength,
   fileRef,
   editing,
-  setEditing,
-  headerIsSaved,
   onCoverChange,
+  tracks,
 }: {
-  custom: any;
+  custom?: CustomPlaylist;
   isLiked: boolean;
-  headerCard: any;
+  headerCard: Card;
   cover?: string;
   title: string;
   tracksLength: number;
   fileRef: React.RefObject<HTMLInputElement | null>;
   editing: boolean;
   setEditing: (v: boolean) => void;
-  headerIsSaved: boolean;
   onCoverChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  tracks: Track[];
 }) {
+
+  const playTrack = usePlayerStore((state) => state.playTrack);
+  const currentTrack = usePlayerStore((state) => state.track);
+  const isPlaying = usePlayerStore((state) => state.isPlaying);
+  const togglePlay = usePlayerStore((state) => state.togglePlay);
+  const firstTrack = tracks[0];
+  const isCurrentQueue = isTrackInQueue(currentTrack.id, tracks);
+
+  const handlePlayClick = () => {
+    if (!firstTrack) return;
+
+    if (isCurrentQueue) {
+      togglePlay();
+      return;
+    }
+
+    playTrack(firstTrack, tracks);
+  };
+
   return (
     <>
       <TransitionLink href="/" className="absolute top-5 left-5 z-50 md:hidden">
@@ -79,6 +101,18 @@ export default function PlaylistHeader({
 
         <div className="py-8 flex items-center gap-4 relative">
           <div className="flex items-center gap-6">
+            <button
+              onClick={handlePlayClick}
+              disabled={!firstTrack}
+              aria-label={isCurrentQueue && isPlaying ? "توقف پخش آهنگ‌های پلی‌لیست" : "پخش آهنگ‌های پلی‌لیست"}
+              className="w-14 h-14 rounded-full bg-accent-gold text-bg-base flex items-center justify-center shadow-[var(--shadow-glow-gold)] transition-transform hover:scale-105 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {isCurrentQueue && isPlaying ? (
+                <Pause className="w-6 h-6 fill-current" />
+              ) : (
+                <Play className="w-6 h-6 fill-current mr-0.5" />
+              )}
+            </button>
             <AlbumSaveButton card={headerCard} className="cursor-pointer" />
             <button className="text-white/70">
               <MoreHorizontalIcon />
