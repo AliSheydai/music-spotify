@@ -71,11 +71,7 @@ export function Topbar() {
           >
             {/* <span className="text-xs font-medium text-gray-300 hidden md:block">علی رضایی</span> */}
             <Avatar className="h-8 w-8 flex items-center justify-center">
-              {imageSrc ? (
-                <AvatarImage src={imageSrc} alt="پروفایل" />
-              ) : (
-                <User className="w-5 h-5 text-gray-300" />
-              )}
+              <User className="w-5 h-5 text-gray-300" />
             </Avatar>
           </NextLink>
         </div>

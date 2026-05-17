@@ -4,7 +4,25 @@ import { motion } from "framer-motion";
 import { Play, Pause, MoreHorizontal } from "lucide-react";
 import LikeButton from "@/components/music/LikeButton";
 import AnimatedBars from "@/components/music/AnimatedBars";
-import { normalizePlayableQueue, normalizePlayableTrack } from "@/lib/music-catalog";
+import { normalizePlayableQueue, normalizePlayableTrack, type PlayableTrackInput } from "@/lib/music-catalog";
+import type { Track } from "@/lib/mock-data";
+import { usePlayerStore } from "@/store/player-store";
+
+type PlaylistRowTrack = PlayableTrackInput & { plays?: string; album?: string };
+type PlaylistArtist = { title?: string; cover?: string } | undefined;
+
+type PlaylistTrackRowProps = {
+  t: PlaylistRowTrack;
+  i: number;
+  artist: PlaylistArtist;
+  cover?: string;
+  setTrack: (t: Track, queue?: Track[]) => void;
+  queue?: PlayableTrackInput[];
+  isPlaying: boolean;
+  currentTrack: Track | null | undefined;
+  formatDuration: (d: number | string) => string;
+  parseDuration: (d: number | string) => number;
+};
 
 export default function PlaylistTrackRow({
   t,
@@ -16,19 +34,7 @@ export default function PlaylistTrackRow({
   isPlaying,
   currentTrack,
   formatDuration,
-  parseDuration,
-}: {
-  t: any;
-  i: number;
-  artist: any;
-  cover?: string;
-  setTrack: (t: any, queue?: any[]) => void;
-  queue?: any[];
-  isPlaying: boolean;
-  currentTrack: any;
-  formatDuration: (d: any) => string;
-  parseDuration: (d: any) => number;
-}) {
+ }: PlaylistTrackRowProps) {
   const trackCover = t.cover ?? artist?.cover ?? cover ?? "/images/moein.jpg";
   const plays = t.plays ?? undefined;
 
@@ -41,10 +47,21 @@ export default function PlaylistTrackRow({
     artist: artist?.title ?? "",
   });
 
+  const togglePlay = usePlayerStore((s) => s.togglePlay);
   const isCurrent = currentTrack?.id === t.id;
   const isActive = isCurrent && isPlaying;
 
   const playThisTrack = () => setTrack(playableTrack, playableQueue);
+  const handlePlaybackClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+
+    if (isCurrent) {
+      togglePlay();
+      return;
+    }
+
+    playThisTrack();
+  };
 
   return (
     <motion.div
@@ -56,21 +73,24 @@ export default function PlaylistTrackRow({
     >
       {/* ── Index / Play / AnimatedBars column ── */}
       <button
-        onClick={playThisTrack}
+        type="button"
+        onClick={handlePlaybackClick}
+        aria-label={isActive ? `توقف پخش ${t.title}` : `پخش ${t.title}`}
         className="hidden md:flex w-8 h-8 items-center justify-center text-text-secondary hover:text-text-primary"
       >
         {isCurrent ? (
           <>
-            {/* When hovering: show Pause icon */}
-            <Pause className="hidden group-hover:block w-4 h-4 fill-current text-accent-gold" />
-            {/* When NOT hovering: show animated bars */}
+            {isActive ? (
+              <Pause className="hidden group-hover:block w-4 h-4 fill-current text-accent-gold" />
+            ) : (
+              <Play className="hidden group-hover:block w-4 h-4 fill-current text-accent-gold" />
+            )}
             <span className="group-hover:hidden">
               <AnimatedBars isPlaying={isActive} />
             </span>
           </>
         ) : (
           <>
-            {/* Normal row: index number, Play icon on hover */}
             <span className="group-hover:hidden text-sm tabular-nums">{i + 1}</span>
             <Play className="hidden group-hover:block w-4 h-4 fill-current" />
           </>
@@ -81,11 +101,11 @@ export default function PlaylistTrackRow({
       <div className="flex items-center gap-3 min-w-0 overflow-hidden">
         <img
           src={trackCover}
-          alt={t.title}
+          alt={t.title ?? "آهنگ"}
           className="w-10 h-10 rounded object-cover flex-shrink-0"
         />
         <div className="min-w-0 text-right">
-          <div className={`font-bold text-sm truncate ${isActive ? "text-accent-gold" : "text-text-primary"}`}>
+          <div className={`font-bold text-sm truncate ${isCurrent ? "text-accent-gold" : "text-text-primary"}`}>
             {t.title}
           </div>
           <div className="text-xs text-text-secondary truncate">{playableTrack.artist}</div>
@@ -100,8 +120,12 @@ export default function PlaylistTrackRow({
         <div className="hidden md:block opacity-0 group-hover:opacity-100 transition-opacity">
           <LikeButton track={t} artistTitle={artist?.title} />
         </div>
-        <span className="text-sm tabular-nums max-md:hidden">{formatDuration(t.duration)}</span>
-        <button className="opacity-90 hover:text-text-primary transition-opacity">
+        <span className="text-sm tabular-nums max-md:hidden">{formatDuration(t.duration ?? 0)}</span>
+        <button
+          type="button"
+          onClick={(event) => event.stopPropagation()}
+          className="opacity-90 hover:text-text-primary transition-opacity"
+        >
           <MoreHorizontal className="w-4 h-4" />
         </button>
       </div>
