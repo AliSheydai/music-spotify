@@ -9,7 +9,7 @@
 import Link            from 'next/link'
 import { usePathname } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Home, LayoutGrid, Bell, User } from 'lucide-react'
+import { Home, LayoutGrid, Bell, User, Search } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { TransitionLink } from '../view-transition'
 
@@ -19,7 +19,8 @@ import { TransitionLink } from '../view-transition'
 const TABS = [
   { href: '/',         label: 'خانه',     icon: Home       },
   { href: '/library',  label: 'گالری',    icon: LayoutGrid },
-  { href: '/charts',   label: 'اعلان‌ها',  icon: Bell       },
+  // { href: '/charts',   label: 'اعلان‌ها',  icon: Bell       },
+  { href: '/search',   label: 'جستجو',    icon: Search     },
   { href: '/profile',  label: 'پروفایل',  icon: User       },
 ] as const
 
