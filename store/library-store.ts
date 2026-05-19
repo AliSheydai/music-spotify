@@ -23,6 +23,7 @@ export type CustomPlaylist = {
   title: string;
   cover: string | null; // data URL or null
   tracks: CustomTrack[];
+  description?: string;
   createdAt: number;
 };
 
@@ -56,6 +57,7 @@ type LibraryState = {
   createPlaylist: () => CustomPlaylist;
   updatePlaylistCover: (id: string, cover: string) => void;
   renamePlaylist: (id: string, title: string) => void;
+  updatePlaylistDetails: (id: string, details: { title: string; description?: string }) => void;
   addTrackToPlaylist: (id: string, track: CustomTrack) => void;
   isTrackLiked: (id: string) => boolean;
   addLikedTrack: (track: CustomTrack) => void;
@@ -93,6 +95,7 @@ export const useLibraryStore = create<LibraryState>()(
         const pl: CustomPlaylist = {
           id: `my-${Date.now()}`,
           title: `پلی‌لیست من #${n}`,
+          description: "",
           cover: null,
           tracks: [],
           createdAt: Date.now(),
@@ -108,10 +111,18 @@ export const useLibraryStore = create<LibraryState>()(
         set((s) => ({
           customPlaylists: s.customPlaylists.map((p) => (p.id === id ? { ...p, title } : p)),
         })),
+        updatePlaylistDetails: (id, details) =>
+        set((s) => ({
+          customPlaylists: s.customPlaylists.map((p) => (p.id === id ? { ...p, ...details } : p)),
+        })),
       addTrackToPlaylist: (id, track) =>
         set((s) => ({
           customPlaylists: s.customPlaylists.map((p) =>
-            p.id === id ? { ...p, tracks: [...p.tracks, track] } : p,
+            p.id === id
+              ? p.tracks.some((existing) => existing.id === track.id)
+                ? p
+                : { ...p, tracks: [...p.tracks, track] }
+              : p,
           ),
         })),
 

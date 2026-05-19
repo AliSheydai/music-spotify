@@ -3,8 +3,8 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, BadgeCheck } from "lucide-react";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
-import { useLibraryStore } from "@/store/library-store";
+import { useLibraryStore, type CustomTrack } from "@/store/library-store";
+import TrackPlaylistToast from "@/components/music/TrackPlaylistToast";
 
 export default function LikeButton({
   track,
@@ -15,14 +15,13 @@ export default function LikeButton({
   artistTitle?: string;
   className?: string;
 }) {
-  const router = useRouter();
   const liked = useLibraryStore((s) => s.likedTracks.some((x: any) => x.id === track.id));
   const toggleLikedTrack = useLibraryStore((s) => s.toggleLikedTrack);
 
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     const willBeLiked = !liked;
-    toggleLikedTrack({
+    const savedTrack: CustomTrack = {
       id: track.id,
       title: track.title,
       artist: artistTitle ?? track.artist ?? "",
@@ -30,15 +29,12 @@ export default function LikeButton({
       duration: String(track.duration ?? ""),
       cover: track.cover,
       src: track.src,
-    });
+    };
+
+    toggleLikedTrack(savedTrack);
 
     if (willBeLiked) {
-      toast.success("به اهنگ های لایک شده اضافه شد.", {
-        action: {
-          label: "بررسی",
-          onClick: () => router.push("/playlist/liked"),
-        },
-      });
+      toast.custom((toastId) => <TrackPlaylistToast toastId={toastId} track={savedTrack} />, { duration: 7000 });
     } else {
       toast("از لیست اهنگ های لایک شده حذف شد.");
     }

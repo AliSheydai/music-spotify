@@ -29,9 +29,11 @@ export default function ArtistPage() {
       type: "artist",
     };
   const [bioOpen, setBioOpen] = useState(false);
+  const [popularExpanded, setPopularExpanded] = useState(false);
   const playTrack = usePlayerStore((s) => s.playTrack);
 
   const playablePopularTracks = buildArtistPlaybackQueue(artist);
+  const visiblePopularTracks = popularExpanded ? playablePopularTracks : playablePopularTracks.slice(0, 5);
 
   const artistBio = `${artist.title} از چهره‌های شناخته‌شده موسیقی فارسی است...`;
   // const formatDuration = (sec: number) => `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, "0")}`;
@@ -56,19 +58,23 @@ export default function ArtistPage() {
         <section className="px-6 py-8">
           <h2 className="text-2xl font-black mb-4">محبوب‌ترین‌ها</h2>
           <div className="max-w-5xl space-y-1" dir="rtl">
-            {playablePopularTracks.map((track, index) => (
+            {visiblePopularTracks.map((track, index) => (
               <ArtistTrackRow key={track.id} track={track} index={index} artist={artist} setTrack={playTrack} queue={playablePopularTracks} />
             ))}
           </div>
-          <button className="mt-4 text-sm font-bold text-text-secondary hover:text-text-primary">
-            نمایش بیشتر
+          <button
+            onClick={() => setPopularExpanded((value) => !value)}
+            className="mt-4 text-sm font-bold text-text-secondary hover:text-text-primary"
+          >
+            {popularExpanded ? "نمایش کمتر" : "نمایش بیشتر"}
           </button>
         </section>
 
         <div className="px-6">
           <SectionRow
             title="آلبوم‌ها و تک‌آهنگ‌ها"
-            isShowAll={false}
+            isShowAll={true}
+            showAllHref={`/collection/albums?artist=${artist.id}`}
             cards={(homeData?.albums ?? []).slice().reverse()}
           />
 
@@ -100,12 +106,14 @@ export default function ArtistPage() {
           </section>
           <SectionRow
             title="طرفداران همچنین گوش می‌دهند"
-            isShowAll={false}
+            isShowAll={true}
+            showAllHref={`/collection/related-artists?artist=${artist.id}`}
             cards={(homeData?.artists ?? []).filter((a) => a.id !== id)}
           />
           <SectionRow
             title="بر اساس این هنرمند"
-            isShowAll={false}
+            isShowAll={true}
+            showAllHref={`/collection/artist-playlists?artist=${artist.id}`}
             cards={homeData?.playlists ?? []}
           />
         </div>

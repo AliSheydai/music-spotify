@@ -2,8 +2,19 @@ import { useRef } from "react";
 import { motion } from "framer-motion";
 import { MusicCard } from "./MusicCard";
 import type { Card } from "@/lib/mock-data";
+import { TransitionLink } from "@/components/view-transition";
 
-export function SectionRow({ title, cards, isShowAll=true }: { title: string; isShowAll:boolean; cards: Card[] }) {
+export function SectionRow({
+  title,
+  cards,
+  isShowAll = true,
+  showAllHref,
+}: {
+  title: string;
+  isShowAll: boolean;
+  cards: Card[];
+  showAllHref?: string;
+}) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   return (
@@ -12,10 +23,13 @@ export function SectionRow({ title, cards, isShowAll=true }: { title: string; is
         <h2 className="text-xl md:text-2xl font-bold text-text-primary hover:underline cursor-pointer">
           {title}
         </h2>
-        {isShowAll && (
-          <button className="text-xs font-bold text-text-secondary hover:text-text-primary hover:underline">
-          نمایش همه
-        </button>
+        {isShowAll && showAllHref && (
+          <TransitionLink
+            href={showAllHref}
+            className="hidden md:inline-flex text-xs font-bold text-text-secondary hover:text-text-primary hover:underline"
+          >
+            نمایش همه
+          </TransitionLink>
         )}
       </div>
 

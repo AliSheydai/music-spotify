@@ -1,7 +1,7 @@
 "use client";
 
-import React from "react";
-import { Music, Heart, Pencil, Pause, Play } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { Music, Heart, Pencil, Pause, Play, X } from "lucide-react";
 import { TransitionLink } from "@/components/view-transition";
 import AlbumSaveButton from "@/components/music/AlbumSaveButton";
 import { ArrowLeft } from "lucide-react";
@@ -18,9 +18,9 @@ export default function PlaylistHeader({
   title,
   tracksLength,
   fileRef,
-  editing,
   onCoverChange,
   tracks,
+  onUpdateDetails,
 }: {
   custom?: CustomPlaylist;
   isLiked: boolean;
@@ -32,8 +32,13 @@ export default function PlaylistHeader({
   editing: boolean;
   setEditing: (v: boolean) => void;
   onCoverChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onUpdateDetails?: (details: { title: string; description?: string }) => void;
   tracks: Track[];
 }) {
+
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [draftTitle, setDraftTitle] = useState(title);
+  const [draftDescription, setDraftDescription] = useState(custom?.description ?? "");
 
   const playTrack = usePlayerStore((state) => state.playTrack);
   const currentTrack = usePlayerStore((state) => state.track);
@@ -41,6 +46,14 @@ export default function PlaylistHeader({
   const togglePlay = usePlayerStore((state) => state.togglePlay);
   const firstTrack = tracks[0];
   const isCurrentQueue = isTrackInQueue(currentTrack.id, tracks);
+
+  useEffect(() => {
+    if (!detailsOpen) {
+      setDraftTitle(title);
+      setDraftDescription(custom?.description ?? "");
+    }
+  }, [custom?.description, detailsOpen, title]);
+
 
   const handlePlayClick = () => {
     if (!firstTrack) return;
@@ -53,6 +66,13 @@ export default function PlaylistHeader({
     playTrack(firstTrack, tracks);
   };
 
+  const saveDetails = (event: React.FormEvent) => {
+    event.preventDefault();
+    const cleanTitle = draftTitle.trim() || title;
+    onUpdateDetails?.({ title: cleanTitle, description: draftDescription.trim() });
+    setDetailsOpen(false);
+  };
+
   return (
     <>
       <TransitionLink href="/" className="absolute top-5 left-5 z-50 md:hidden">
@@ -61,7 +81,7 @@ export default function PlaylistHeader({
         </div>
       </TransitionLink>
 
-      <div className={`relative px-4 pt-12 pb-6 bg-gradient-to-b from-violet-700/40 to-transparent md:pt-8`}>
+      <div className="relative px-4 pt-12 pb-6 bg-gradient-to-b from-violet-700/40 to-transparent md:pt-8">
         <div className="flex flex-col items-center md:flex-row md:items-end gap-6">
           <div className="relative w-48 h-48 md:w-56 md:h-56 mb-4 md:mb-0">
             {custom ? (
@@ -75,6 +95,7 @@ export default function PlaylistHeader({
                 )}
                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center">
                   <Pencil className="w-6 h-6 text-white" />
+                  <span className="mt-2 text-sm font-bold text-white">انتخاب تصویر</span>
                 </div>
                 <input ref={fileRef} onChange={onCoverChange} type="file" accept="image/*" className="hidden" />
               </button>
@@ -88,13 +109,21 @@ export default function PlaylistHeader({
           </div>
 
           <div className="flex-1 w-full text-right md:text-right">
-            <p className="hidden md:block text-xs font-bold uppercase mb-2">{custom ? "پلی‌لیست عمومی" : "پلی‌لیست"}</p>
-            {custom && editing ? (
-              <input autoFocus className="text-3xl md:text-6xl font-black bg-white/10 rounded px-2 outline-none w-full" />
+            <p className="hidden md:block text-xs font-bold uppercase mb-2">{custom ? "پلی‌لیست شخصی" : "پلی‌لیست"}</p>
+            {custom ? (
+              <button
+                type="button"
+                onClick={() => setDetailsOpen(true)}
+                className="block w-full rounded-md text-right outline-none hover:underline focus-visible:ring-2 focus-visible:ring-white/80"
+                aria-label="ویرایش اطلاعات پلی‌لیست"
+              >
+                <h1 className="text-3xl md:text-7xl font-black text-white mb-2 leading-tight">{title}</h1>
+              </button>
             ) : (
               <h1 className="text-3xl md:text-7xl font-black text-white mb-2 leading-tight">{title}</h1>
             )}
-
+            
+            {custom?.description && <p className="mb-2 max-w-2xl text-sm leading-6 text-white/70">{custom.description}</p>}
             <p className="text-sm text-white/60 mt-1 md:mt-2">{tracksLength} آهنگ</p>
           </div>
         </div>
@@ -113,13 +142,68 @@ export default function PlaylistHeader({
                 <Play className="w-6 h-6 fill-current mr-0.5" />
               )}
             </button>
-            <AlbumSaveButton card={headerCard} className="cursor-pointer" />
+            {!custom && <AlbumSaveButton card={headerCard} className="cursor-pointer" />}
             <button className="text-white/70">
               <MoreHorizontalIcon />
             </button>
           </div>
         </div>
       </div>
+
+      {custom && detailsOpen && (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/70 px-4" role="dialog" aria-modal="true" dir="rtl">
+          <form onSubmit={saveDetails} className="w-full max-w-xl rounded-xl bg-[#282828] p-6 text-right text-white shadow-2xl">
+            <div className="mb-6 flex items-center justify-between">
+              <h2 className="text-2xl font-black">ویرایش اطلاعات</h2>
+              <button type="button" onClick={() => setDetailsOpen(false)} className="rounded-full p-2 text-text-secondary hover:bg-white/10 hover:text-white" aria-label="بستن">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-[180px_1fr]">
+              <button
+                type="button"
+                onClick={() => fileRef.current?.click()}
+                className="group relative flex aspect-square items-center justify-center overflow-hidden rounded bg-bg-elevated shadow-lg"
+              >
+                {cover ? <img src={cover} alt={title} className="h-full w-full object-cover" /> : <Music className="h-16 w-16 text-text-secondary" />}
+                <span className="absolute inset-0 flex flex-col items-center justify-center bg-black/55 opacity-0 transition-opacity group-hover:opacity-100">
+                  <Pencil className="h-6 w-6" />
+                  <span className="mt-2 text-sm font-bold">انتخاب تصویر</span>
+                </span>
+              </button>
+
+              <div className="space-y-4">
+                <label className="block">
+                  <span className="mb-1 block text-xs font-bold text-text-secondary">نام</span>
+                  <input
+                    autoFocus
+                    value={draftTitle}
+                    onChange={(event) => setDraftTitle(event.target.value)}
+                    className="w-full rounded border border-border-strong bg-white/10 px-3 py-3 font-bold outline-none focus:border-white"
+                  />
+                </label>
+                <label className="block">
+                  <span className="mb-1 block text-xs font-bold text-text-secondary">توضیحات</span>
+                  <textarea
+                    value={draftDescription}
+                    onChange={(event) => setDraftDescription(event.target.value)}
+                    placeholder="توضیح اختیاری اضافه کنید"
+                    className="h-28 w-full resize-none rounded border border-transparent bg-white/10 px-3 py-3 text-sm outline-none placeholder:text-text-secondary focus:border-white"
+                  />
+                </label>
+              </div>
+            </div>
+
+            <div className="mt-5 flex items-center justify-between gap-4">
+              <p className="max-w-sm text-xs leading-6 text-white/70">با ذخیره تغییرات، اطلاعات این پلی‌لیست شخصی در کتابخانه شما به‌روزرسانی می‌شود.</p>
+              <button type="submit" className="rounded-full bg-white px-8 py-3 text-sm font-black text-black hover:scale-105">
+                ذخیره
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
     </>
   );
 }

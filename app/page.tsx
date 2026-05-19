@@ -37,11 +37,11 @@ export default function HomePage() {
         transition={{ duration: 0.4 }}
         className="md:px-4 xl:px-5 md:pt-4 md:pb-8 px-2.5 pt-2 pb-6"
       >
-        <SectionRow title="پیشنهاد ویژه برای شما" isShowAll={true} cards={data?.featured ?? []} />
-        <SectionRow title="رادیوهای محبوب" isShowAll={true} cards={data?.radio ?? []} />
-        <SectionRow title="آلبوم‌ها و تک‌آهنگ‌ها" isShowAll={true} cards={data?.albums ?? []} />
-        <SectionRow title="هنرمندان محبوب" isShowAll={true} cards={data?.artists ?? []} />
-        <SectionRow title="پلی‌لیست‌های پیشنهادی 🔥" isShowAll={true} cards={data?.playlists ?? []} />
+        <SectionRow title="پیشنهاد ویژه برای شما" isShowAll={true} showAllHref="/collection/featured" cards={data?.featured ?? []} />
+        <SectionRow title="رادیوهای محبوب" isShowAll={true} showAllHref="/collection/radio" cards={data?.radio ?? []} />
+        <SectionRow title="آلبوم‌ها و تک‌آهنگ‌ها" isShowAll={true} showAllHref="/collection/albums" cards={data?.albums ?? []} />
+        <SectionRow title="هنرمندان محبوب" isShowAll={true} showAllHref="/collection/artists" cards={data?.artists ?? []} />
+        <SectionRow title="پلی‌لیست‌های پیشنهادی 🔥" isShowAll={true} showAllHref="/collection/playlists" cards={data?.playlists ?? []} />
       </motion.div>
     </AppShell>
   );

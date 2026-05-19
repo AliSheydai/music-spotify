@@ -2,8 +2,19 @@ import type { Card, Track } from "./mock-data";
 import { artistCards, albumCards } from "./mock-data";
 import { normalizePlayableQueue } from "./music-catalog";
 
-const ARTIST_TRACK_TITLES = ["بی‌قرار", "شاید", "باران", "دل دیوانه", "خاطره‌ها"];
-const ARTIST_TRACK_DURATIONS = [314, 345, 238, 379, 165];
+const ARTIST_TRACK_TITLES = [
+  "بی‌قرار",
+  "شاید",
+  "باران",
+  "دل دیوانه",
+  "خاطره‌ها",
+  "زندگی",
+  "دله دیوونه",
+  "وای به حالش",
+  "نرگس شیراز",
+  "بزن تار",
+];
+const ARTIST_TRACK_DURATIONS = [314, 345, 238, 379, 165, 313, 342, 279, 309, 284];
 
 export function isTrackInQueue(trackId: string | undefined, queue: Track[]) {
   return Boolean(trackId && queue.some((track) => track.id === trackId));

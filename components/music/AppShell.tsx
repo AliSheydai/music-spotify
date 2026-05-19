@@ -81,7 +81,7 @@ export function AppShell({
       </div>
 
       <Player />
-      <Toaster />
+      <Toaster position="bottom-center" offset={{ bottom: 100 }} mobileOffset={{ bottom: 76 }} />
     </div>
   );
 }

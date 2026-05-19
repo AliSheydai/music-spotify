@@ -3,9 +3,9 @@
 import { motion } from "framer-motion";
 import { Heart, Clock, ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
-import React, { useRef, useState, use } from "react";
+import React, { useMemo, useRef, useState, use } from "react";
 import { AppShell } from "@/components/music/AppShell";
-import { usePlaylist, useArtist, useCurrentTrack } from "@/lib/hooks";
+import { usePlaylist, useArtist, useCurrentTrack, useHomeData } from "@/lib/hooks";
 import { usePlayerStore } from "@/store/player-store";
 import { useLibraryStore, type CustomTrack } from "@/store/library-store";
 import Link from "next/link";
@@ -14,8 +14,9 @@ import PlaylistHeader from "@/components/music/PlaylistHeader";
 import PlaylistTrackRow from "@/components/music/PlaylistTrackRow";
 import AddSongsPanel from "@/components/music/AddSongsPanel";
 // tooltip primitives removed from this page (used in shared UI components)
-import { normalizePlayableQueue, type PlayableTrackInput } from "@/lib/music-catalog";
+import { normalizePlayableQueue, normalizePlayableTrack, type PlayableTrackInput } from "@/lib/music-catalog";
 import type { Card } from "@/lib/mock-data";
+import { buildCardPlaybackQueue } from "@/lib/playback-context";
 
 // AlbumSaveButton and header/rows extracted to components in components/music/
 
@@ -78,6 +79,7 @@ export default function PlaylistPage({ params }: Props) {
     customPlaylists,
     updatePlaylistCover,
     addTrackToPlaylist,
+    updatePlaylistDetails,
   } = useLibraryStore();
   const likedTracks = useLibraryStore((s) => s.likedTracks);
 
@@ -88,6 +90,7 @@ export default function PlaylistPage({ params }: Props) {
 
   const fileRef = useRef<HTMLInputElement>(null);
   const [editing, setEditing] = useState(false);
+  const { data: homeData } = useHomeData();
   const [showSearch, setShowSearch] = useState(
     (custom?.tracks.length ?? 0) === 0 || (isLiked && likedTracks.length === 0),
   );
@@ -125,8 +128,39 @@ export default function PlaylistPage({ params }: Props) {
     reader.readAsDataURL(file);
   };
 
-  const filteredSuggest = sampleTracks.filter(
-    (t) => !query.trim() || (t.title ?? "").includes(query) || (t.artist ?? "").includes(query),
+  const allAvailableTracks = useMemo(() => {
+    const cards = [
+      ...(homeData?.featured ?? []),
+      ...(homeData?.radio ?? []),
+      ...(homeData?.albums ?? []),
+      ...(homeData?.artists ?? []),
+      ...(homeData?.playlists ?? []),
+    ];
+    const unique = new Map<string, CustomTrack>();
+
+    [...cards.flatMap((item) => buildCardPlaybackQueue(item)), ...sampleTracks.map((item) => normalizePlayableTrack(item))].forEach((track) => {
+      if (!unique.has(track.id)) {
+        unique.set(track.id, {
+          id: track.id,
+          title: track.title,
+          artist: track.artist,
+          album: track.album ?? "",
+          duration: String(track.duration),
+          cover: track.cover,
+          src: track.src,
+        });
+      }
+    });
+
+    return Array.from(unique.values());
+  }, [homeData]);
+
+  const filteredSuggest = allAvailableTracks.filter(
+    (t) =>
+      !query.trim() ||
+      (t.title ?? "").toLowerCase().includes(query.trim().toLowerCase()) ||
+      (t.artist ?? "").toLowerCase().includes(query.trim().toLowerCase()) ||
+      (t.album ?? "").toLowerCase().includes(query.trim().toLowerCase()),
   );
 
   const formatDuration = (d: number | string) => {
@@ -185,6 +219,7 @@ export default function PlaylistPage({ params }: Props) {
           editing={editing}
           setEditing={setEditing}
           onCoverChange={handleCover}
+          onUpdateDetails={(details) => custom && updatePlaylistDetails(custom.id, details)}
           tracks={playableTracks}
         />
 

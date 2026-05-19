@@ -19,21 +19,20 @@ import {
 } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 import { usePlayerStore } from "../../store/player-store";
-import { useLibraryStore } from "../../store/library-store";
+import { useLibraryStore, type CustomTrack } from "../../store/library-store";
 import LikeButton from "./LikeButton";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
+import TrackPlaylistToast from "@/components/music/TrackPlaylistToast";
 import type { Track } from "@/lib/mock-data";
 
 function MobileHeart({ track }: { track: Track }) {
-  const router = useRouter();
   const liked = useLibraryStore((s) => s.likedTracks.some((x) => x.id === track.id));
   const toggleLikedTrack = useLibraryStore((s) => s.toggleLikedTrack);
 
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     const willBeLiked = !liked;
-    toggleLikedTrack({
+    const savedTrack: CustomTrack = {
       id: track.id,
       title: track.title,
       artist: track.artist ?? "",
@@ -41,15 +40,12 @@ function MobileHeart({ track }: { track: Track }) {
       duration: String(track.duration ?? ""),
       cover: track.cover,
       src: track.src,
-    });
+    };
+
+    toggleLikedTrack(savedTrack);
 
     if (willBeLiked) {
-      toast.success("به اهنگ های لایک شده اضافه شد.", {
-        action: {
-          label: "بررسی",
-          onClick: () => router.push("/playlist/liked"),
-        },
-      });
+      toast.custom((toastId) => <TrackPlaylistToast toastId={toastId} track={savedTrack} />, { duration: 7000 });
     } else {
       toast("از اهنگ های لایک شده حذف شد.");
     }
@@ -363,12 +359,12 @@ export function Player() {
               <div className="flex-1 flex items-center justify-center -mx-3 py-4">
                 <motion.img
                   key={track.cover}
-                  initial={{ scale: 0.85, opacity: 0 }}
+                  initial={{ scale: 0.90, opacity: 0 }}
                   animate={{ scale: isPlaying ? 1 : 0.88, opacity: 1 }}
                   transition={{ duration: 0.4, ease: "easeOut" }}
                   src={track.cover}
                   alt={track.title}
-                  className="w-full aspect-square object-cover shadow-2xl"
+                  className="w-[95vw] aspect-square object-cover shadow-2xl"
                   style={{ boxShadow: "0 24px 80px rgba(0,0,0,0.8)" }}
                 />
               </div>
