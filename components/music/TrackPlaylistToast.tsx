@@ -138,10 +138,15 @@ export default function TrackPlaylistToast({ toastId, track }: TrackPlaylistToas
   );
 
   return (
-    <div ref={containerRef} className="relative w-full" dir="rtl">
+    <div
+      ref={containerRef}
+      className="relative w-full rounded-lg bg-bg-card text-white"
+      dir="rtl"
+      style={{ fontFamily: 'Vazir, sans-serif' }}
+    >
 
       {/* ── Toast bar ── */}
-      <div className="flex items-center gap-3 pb-1">
+      <div className="flex items-center justify-center gap-3 p-4">
         {/* Gold check dot */}
         <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent-gold">
           <Check className="h-3 w-3 text-black" strokeWidth={3} />
@@ -186,7 +191,7 @@ export default function TrackPlaylistToast({ toastId, track }: TrackPlaylistToas
       {/* ── Spotify-inspired dropdown ── */}
       {open && (
         <div
-          className="absolute bottom-[calc(100%+12px)] right-0 z-[200] w-[340px] overflow-hidden rounded-md"
+          className="absolute bottom-[calc(100%+12px)] right-0 z-[200] w-[340px] overflow-hidden rounded-lg"
           style={{
             background: "#282828",
             boxShadow: "0 16px 56px rgba(0,0,0,0.7), 0 2px 8px rgba(0,0,0,0.4)",
@@ -201,7 +206,7 @@ export default function TrackPlaylistToast({ toastId, track }: TrackPlaylistToas
             </div>
             <button
               type="button"
-              onClick={() => setOpen(false)}
+              onClick={() => { setOpen(false); toast.dismiss(toastId); }}
               className="mt-0.5 text-[#b3b3b3] transition-colors hover:text-white"
             >
               <X className="h-4 w-4" />
@@ -337,7 +342,7 @@ export default function TrackPlaylistToast({ toastId, track }: TrackPlaylistToas
           <div className="flex items-center justify-end border-t border-white/10 px-4 py-3">
             <button
               type="button"
-              onClick={() => setOpen(false)}
+              onClick={() => { setOpen(false); toast.dismiss(toastId); }}
               className="text-sm font-bold text-[#b3b3b3] transition-colors hover:text-white"
             >
               لغو
@@ -347,6 +352,8 @@ export default function TrackPlaylistToast({ toastId, track }: TrackPlaylistToas
       )}
 
       <style>{`
+        @import url('https://cdn.jsdelivr.net/gh/rastikerdar/vazir-font@v30.1.0/dist/font-face.css');
+
         @keyframes spDropIn {
           from { opacity: 0; transform: translateY(6px) scale(0.99); }
           to   { opacity: 1; transform: translateY(0) scale(1); }

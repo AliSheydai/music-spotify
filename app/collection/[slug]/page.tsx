@@ -84,7 +84,7 @@ export default function CollectionPage() {
           </span>
         </div>
 
-        <div className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-5 lg:grid-cols-6 xl:grid-cols-4 2xl:grid-cols-8">
+        <div className="flex flex-wrap items-start">
           {cards.map((card) => (
             <div key={card.id} className="min-w-0">
               <MusicCard card={card} />
