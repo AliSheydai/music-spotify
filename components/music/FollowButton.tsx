@@ -2,8 +2,9 @@
 
 import { toast } from "sonner";
 import { useLibraryStore } from "@/store/library-store";
+import type { ArtistSummary } from "@/lib/types/music";
 
-export default function FollowButton({ artist }: { artist: any }) {
+export default function FollowButton({ artist }: { artist: ArtistSummary }) {
   const isFollowed = useLibraryStore((s) => s.isArtistFollowed(artist.id));
   const toggle = useLibraryStore((s) => s.toggleFollowArtist);
 
@@ -16,7 +17,7 @@ export default function FollowButton({ artist }: { artist: any }) {
   } as const;
 
   const handle = () => {
-    toggle(card as any);
+    toggle(card);
     if (!isFollowed) {
       toast.success("به کتابخانه اضافه شد.");
     } else {

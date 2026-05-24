@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Plus, BadgeCheck } from "lucide-react";
 import { toast } from "sonner";
 import { useLibraryStore, type CustomTrack } from "@/store/library-store";
+import type { MusicTrack } from "@/lib/types/music";
 import TrackPlaylistToast from "@/components/music/TrackPlaylistToast";
 
 export default function LikeButton({
@@ -11,19 +12,19 @@ export default function LikeButton({
   artistTitle,
   className,
 }: {
-  track: any;
+  track: MusicTrack;
   artistTitle?: string;
   className?: string;
 }) {
-  const liked = useLibraryStore((s) => s.likedTracks.some((x: any) => x.id === track.id));
+  const liked = useLibraryStore((s) => s.likedTracks.some((x) => x.id === track.id));
   const toggleLikedTrack = useLibraryStore((s) => s.toggleLikedTrack);
 
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     const willBeLiked = !liked;
     const savedTrack: CustomTrack = {
-      id: track.id,
-      title: track.title,
+      id: track.id ?? "",
+      title: track.title ?? "",
       artist: artistTitle ?? track.artist ?? "",
       album: track.album ?? "",
       duration: String(track.duration ?? ""),

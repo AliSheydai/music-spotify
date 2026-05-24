@@ -31,8 +31,8 @@ export async function fetchPlaylistById(id: string): Promise<{ card: Card | null
   const card = all.find((c) => c.id === id) ?? null;
   // if the card already contains tracks (e.g. album mock-data), use them
   let tracks: Track[];
-  if (card && (card as any).tracks && Array.isArray((card as any).tracks)) {
-    tracks = ((card as any).tracks as Track[]).map(withLocalAudioSource);
+  if (card?.tracks && Array.isArray(card.tracks)) {
+    tracks = card.tracks.map(withLocalAudioSource);
   } else {
     // simple synthetic tracks for demo
     tracks = Array.from({ length: 8 }).map((_, i) =>

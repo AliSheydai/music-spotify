@@ -4,21 +4,17 @@ import { AppShell } from "@/components/music/AppShell";
 import ProfileCard from "@/components/layout/ProfileCard";
 import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { runWithViewTransition } from "@/lib/view-transition";
 
 export default function ProfilePage() {
   const router = useRouter();
 
   const handleBack = async () => {
-    if (typeof document !== "undefined" && (document as any).startViewTransition) {
-      try {
-        await (document as any).startViewTransition(() => {
-          router.back();
-          return Promise.resolve();
-        });
-      } catch {
+    try {
+      await runWithViewTransition(() => {
         router.back();
-      }
-    } else {
+      });
+    } catch {
       router.back();
     }
   };

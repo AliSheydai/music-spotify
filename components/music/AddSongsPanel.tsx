@@ -1,6 +1,7 @@
 "use client";
 
 import { X, Search } from "lucide-react";
+import type { AddSongsPanelProps } from "@/lib/types/music";
 
 export default function AddSongsPanel({
   custom,
@@ -10,15 +11,7 @@ export default function AddSongsPanel({
   setQuery,
   filteredSuggest,
   addTrackToPlaylist,
-}: {
-  custom: any;
-  showSearch: boolean;
-  setShowSearch: (v: boolean) => void;
-  query: string;
-  setQuery: (v: string) => void;
-  filteredSuggest: any[];
-  addTrackToPlaylist: (id: string, t: any) => void;
-}) {
+}: AddSongsPanelProps) {
   if (!custom || !showSearch) return null;
 
   return (
@@ -36,7 +29,7 @@ export default function AddSongsPanel({
 
       <div className="space-y-1">
         {filteredSuggest.map((t) => {
-          const added = custom.tracks.some((x: any) => x.id === t.id);
+          const added = custom.tracks.some((x) => x.id === t.id);
           return (
             <div key={t.id} className="flex items-center justify-between px-3 py-2 rounded-md hover:bg-bg-elevated group">
               <div className="min-w-0">

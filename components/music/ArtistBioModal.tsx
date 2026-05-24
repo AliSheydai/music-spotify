@@ -11,7 +11,7 @@ export default function ArtistBioModal({
 }: {
   open: boolean;
   onClose: () => void;
-  artist: any;
+  artist: { title: string; cover: string };
   bio: string;
 }) {
   if (!open) return null;

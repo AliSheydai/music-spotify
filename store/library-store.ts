@@ -131,7 +131,7 @@ export const useLibraryStore = create<LibraryState>()(
       followArtist: (card) =>
         set((s) => {
           if (s.baseItems.some((i) => i.id === card.id)) return s;
-          return { baseItems: [card, ...s.baseItems] } as any;
+          return { baseItems: [card, ...s.baseItems] };
         }),
       unfollowArtist: (id) =>
         set((s) => ({ baseItems: s.baseItems.filter((i) => i.id !== id) })),
@@ -146,7 +146,7 @@ export const useLibraryStore = create<LibraryState>()(
       saveAlbum: (card) =>
         set((s) => {
           if (s.baseItems.some((i) => i.id === card.id)) return s;
-          return { baseItems: [card, ...s.baseItems] } as any;
+          return { baseItems: [card, ...s.baseItems] };
         }),
       unsaveAlbum: (id) =>
         set((s) => ({ baseItems: s.baseItems.filter((i) => i.id !== id) })),
@@ -163,14 +163,14 @@ export const useLibraryStore = create<LibraryState>()(
           const next = [track, ...s.likedTracks];
           // best-effort sync to server
           void syncLikedTracks(next);
-          return { likedTracks: next } as any;
+          return { likedTracks: next };
         });
       },
       removeLikedTrack: (id) => {
         set((s) => {
           const next = s.likedTracks.filter((t) => t.id !== id);
           void syncLikedTracks(next);
-          return { likedTracks: next } as any;
+          return { likedTracks: next };
         });
       },
       toggleLikedTrack: (track) => {

@@ -5,9 +5,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import { BadgeCheck, Plus } from "lucide-react";
 import { useLibraryStore } from "@/store/library-store";
 import { toast } from "sonner";
+import type { SaveableAlbumCard } from "@/lib/types/music";
 
-const AlbumSaveButton = React.forwardRef<HTMLButtonElement, { card: any } & React.ButtonHTMLAttributes<HTMLButtonElement>>(function AlbumSaveButton({ card, className: cls, onClick: onClickProp, ...rest }, ref) {
-  const isSaved = useLibraryStore((s) => s.isAlbumSaved(card?.id));
+type AlbumSaveButtonProps = { card: SaveableAlbumCard | null; className?: string; onClick?: React.MouseEventHandler<HTMLButtonElement> };
+
+const AlbumSaveButton = React.forwardRef<HTMLButtonElement, AlbumSaveButtonProps>(function AlbumSaveButton({ card, className: cls, onClick: onClickProp }, ref) {
+  const isSaved = useLibraryStore((s) => s.isAlbumSaved(card?.id ?? ""));
   const toggleSave = useLibraryStore((s) => s.toggleSaveAlbum);
 
   if (!card || card.id === "liked") return null;
@@ -18,7 +21,7 @@ const AlbumSaveButton = React.forwardRef<HTMLButtonElement, { card: any } & Reac
     const willBeSaved = !isSaved;
     toggleSave({
       id: card.id,
-      title: card.title ?? card?.name ?? "",
+      title: card.title ?? "",
       subtitle: card.subtitle ?? "",
       cover: card.cover ?? "",
       type: card.type ?? "album",
@@ -29,7 +32,7 @@ const AlbumSaveButton = React.forwardRef<HTMLButtonElement, { card: any } & Reac
     } else {
       toast("از کتابخانه حذف شد.");
     }
-    if (onClickProp) onClickProp(e as any);
+    if (onClickProp) onClickProp(e as React.MouseEvent<HTMLButtonElement>);
   };
 
   const baseClass = `w-10 h-10 rounded-full flex items-center justify-center transition-colors ${isSaved ? "text-accent-emerald" : "text-white/70 hover:text-accent-rose"}`;
@@ -39,8 +42,7 @@ const AlbumSaveButton = React.forwardRef<HTMLButtonElement, { card: any } & Reac
       ref={ref}
       onClick={handle}
       whileTap={{ scale: 0.92 }}
-      className={`${baseClass} ${cls ?? ""}`}
-      {...(rest as any)}>
+      className={`${baseClass} ${cls ?? ""}`}>
       <AnimatePresence mode="wait">
         {isSaved ? (
           <motion.span
