@@ -157,12 +157,9 @@ function PanelBody({
     <div
       className={`flex flex-col gap-4 ${fullscreen ? "px-8 pb-12" : "px-4 pb-6"}`}>
       {/* Cover */}
-      <motion.img
-        layout
-        src={track.cover}
-        alt={track.title}
-        className={`w-full aspect-square object-cover rounded-lg shadow-[var(--shadow-card)] ${fullscreen ? "max-w-[420px] mx-auto" : ""}`}
-      />
+      <div className={`relative w-full aspect-square rounded-lg shadow-[var(--shadow-card)] overflow-hidden ${fullscreen ? "max-w-[420px] mx-auto" : ""}`}>
+        <Image src={track.cover} alt={track.title} fill sizes={fullscreen ? "420px" : "360px"} className="object-cover" />
+      </div>
 
       {/* Track meta */}
       <div className="flex items-start justify-between gap-3">
@@ -243,11 +240,7 @@ function PanelBody({
           </button>
         </div>
         <div className="flex items-center gap-3">
-          <img
-            src={album.cover}
-            alt={album.title}
-            className="w-10 h-10 rounded-md object-cover"
-          />
+          <Image src={album.cover} alt={album.title} width={40} height={40} className="w-10 h-10 rounded-md object-cover" />
           <div className="min-w-0">
             <div className="text-sm font-medium truncate">{album.title}</div>
             <div className="text-xs text-text-secondary truncate">
@@ -314,12 +307,9 @@ function FullscreenView({
 
       <div ref={ref} className="flex-1 overflow-y-auto scroll-smooth">
         <div className="min-h-[60vh] flex items-center justify-center px-6 pt-6 pb-12">
-          <motion.img
-            src={track.cover}
-            alt={track.title}
-            style={{ opacity: coverOpacity, scale: coverScale, y: coverY }}
-            className="max-w-[420px] w-full aspect-square object-cover rounded-lg shadow-[0_30px_80px_rgba(0,0,0,0.5)]"
-          />
+          <motion.div style={{ opacity: coverOpacity, scale: coverScale, y: coverY }} className="relative max-w-[420px] w-full aspect-square rounded-lg shadow-[0_30px_80px_rgba(0,0,0,0.5)] overflow-hidden">
+            <Image src={track.cover} alt={track.title} fill sizes="420px" className="object-cover" />
+          </motion.div>
         </div>
 
         <div className="max-w-5xl mx-auto px-8 pb-16 grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -327,11 +317,7 @@ function FullscreenView({
             <div className="flex items-center justify-between mb-4">
               <div className="text-lg font-bold">درباره هنرمند</div>
             </div>
-            <img
-              src={data?.artists?.[0]?.cover ?? ""}
-              alt={data?.artists?.[0]?.title ?? ""}
-              className="w-20 h-20 rounded-full object-cover mb-3"
-            />
+            <Image src={data?.artists?.[0]?.cover ?? "/images/moein.jpg"} alt={data?.artists?.[0]?.title ?? ""} width={80} height={80} className="w-20 h-20 rounded-full object-cover mb-3" />
             <div className="text-base font-bold mb-1">
               {data?.artists?.[0]?.title ?? ""}
             </div>
@@ -369,11 +355,7 @@ function FullscreenView({
                 </button>
               </div>
               <div className="flex items-center gap-3">
-                <img
-                  src={data?.albums?.[0]?.cover ?? "/images/moein.jpg"}
-                  alt=""
-                  className="w-12 h-12 rounded-md object-cover"
-                />
+                <Image src={data?.albums?.[0]?.cover ?? "/images/moein.jpg"} alt="" width={48} height={48} className="w-12 h-12 rounded-md object-cover" />
                 <div className="min-w-0">
                   <div className="text-sm font-medium truncate">
                     {data?.albums?.[0]?.title ?? ""}

@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { useState } from "react";
 import { useParams } from "next/navigation";
+import Image from "next/image";
 import { AppShell } from "@/components/music/AppShell";
 import { SectionRow } from "@/components/music/SectionRow";
 import { useArtist, useHomeData } from "@/lib/hooks";
@@ -84,10 +85,12 @@ export default function ArtistPage() {
               onClick={() => setBioOpen(true)}
               className="group relative block w-full max-w-[680px] h-[340px] overflow-hidden rounded-lg text-right shadow-[var(--shadow-card)]">
               {/* عکس به صورت یک لایه جداگانه با کنترل کامل */}
-              <img
+              <Image
                 src={artist.cover}
                 className="absolute inset-0 w-full h-full object-cover object-center"
                 alt={artist.title}
+                fill
+                sizes="(max-width: 768px) 100vw, 680px"
               />
 
               {/* لایه گرادینت روی عکس */}

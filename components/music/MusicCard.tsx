@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { Pause, Play } from "lucide-react";
+import Image from "next/image";
 import { TransitionLink } from "@/components/view-transition";
 import { buildCardPlaybackQueue, isTrackInQueue } from "@/lib/playback-context";
 import { usePlayerStore } from "@/store/player-store";
@@ -22,7 +23,7 @@ export function MusicCard({ card }: { card: Card }) {
   const handlePlay = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     if (!firstTrack) return;
 
     if (isCurrent) {
@@ -46,9 +47,11 @@ export function MusicCard({ card }: { card: Card }) {
       >
         <div className="block p-1.5 md:p-2 lg:p-3 rounded-lg bg-transparent hover:bg-bg-elevated group">
         <div className="relative mb-4">
-          <img
+          <Image
             src={card.cover}
             alt={card.title}
+            width={360}
+            height={360}
             className={`w-full aspect-square object-cover shadow-[var(--shadow-card)] ${isCircle ? "rounded-full" : "rounded-lg"}`}
           />
           {/* gradient overlay on hover */}

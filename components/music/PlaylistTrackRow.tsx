@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import Image from "next/image";
 import { Play, Pause, MoreHorizontal } from "lucide-react";
 import LikeButton from "@/components/music/LikeButton";
 import AnimatedBars from "@/components/music/AnimatedBars";
@@ -99,9 +100,11 @@ export default function PlaylistTrackRow({
 
       {/* ── Cover + Title ── */}
       <div className="flex items-center gap-3 min-w-0 overflow-hidden">
-        <img
+        <Image
           src={trackCover}
           alt={t.title ?? "آهنگ"}
+          width={40}
+          height={40}
           className="w-10 h-10 rounded object-cover flex-shrink-0"
         />
         <div className="min-w-0 text-right">

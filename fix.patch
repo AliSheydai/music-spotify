@@ -1,0 +1,1079 @@
+diff --git a/app/artist/[id]/page.tsx b/app/artist/[id]/page.tsx
+index 1c6b519fa6a9c66da72befb5c9adb027c47d912c..0f0100c0e00338ea894743ed4174081669983b2c 100644
+--- a/app/artist/[id]/page.tsx
++++ b/app/artist/[id]/page.tsx
+@@ -1,30 +1,31 @@
+ "use client";
+ 
+ import { motion } from "framer-motion";
+ import { useState } from "react";
+ import { useParams } from "next/navigation";
++import Image from "next/image";
+ import { AppShell } from "@/components/music/AppShell";
+ import { SectionRow } from "@/components/music/SectionRow";
+ import { useArtist, useHomeData } from "@/lib/hooks";
+ import { usePlayerStore } from "@/store/player-store";
+ import ArtistHero from "@/components/music/ArtistHero";
+ import ArtistTrackRow from "@/components/music/ArtistTrackRow";
+ import ArtistBioModal from "@/components/music/ArtistBioModal";
+ import { buildArtistPlaybackQueue } from "@/lib/playback-context";  
+ // در Next.js پارامترها به این صورت دریافت می‌شوند
+ 
+ export default function ArtistPage() {
+   const params = useParams();
+   const id = typeof params?.id === "string" ? params.id : "";
+ 
+   // منطق دریافت هنرمند و محتوای مرتبط از TanStack Query
+   const { data: artistData } = useArtist(id);
+   const { data: homeData } = useHomeData();
+   const artist = artistData?.artist ??
+     homeData?.artists?.[0] ?? {
+       id: "",
+       title: "هنرمند",
+       subtitle: "",
+       cover: "/images/moein.jpg",
+       type: "artist",
+     };
+@@ -62,54 +63,56 @@ export default function ArtistPage() {
+               <ArtistTrackRow key={track.id} track={track} index={index} artist={artist} setTrack={playTrack} queue={playablePopularTracks} />
+             ))}
+           </div>
+           <button
+             onClick={() => setPopularExpanded((value) => !value)}
+             className="mt-4 text-sm font-bold text-text-secondary hover:text-text-primary"
+           >
+             {popularExpanded ? "نمایش کمتر" : "نمایش بیشتر"}
+           </button>
+         </section>
+ 
+         <div className="px-6">
+           <SectionRow
+             title="آلبوم‌ها و تک‌آهنگ‌ها"
+             isShowAll={true}
+             showAllHref={`/collection/albums?artist=${artist.id}`}
+             cards={(homeData?.albums ?? []).slice().reverse()}
+           />
+ 
+           <section className="mb-12">
+             <h2 className="text-2xl font-black mb-4">درباره هنرمند</h2>
+             <button
+               onClick={() => setBioOpen(true)}
+               className="group relative block w-full max-w-[680px] h-[340px] overflow-hidden rounded-lg text-right shadow-[var(--shadow-card)]">
+               {/* عکس به صورت یک لایه جداگانه با کنترل کامل */}
+-              <img
++              <Image
+                 src={artist.cover}
+                 className="absolute inset-0 w-full h-full object-cover object-center"
+                 alt={artist.title}
++                fill
++                sizes="(max-width: 768px) 100vw, 680px"
+               />
+ 
+               {/* لایه گرادینت روی عکس */}
+               <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/20 to-black/90" />
+ 
+               {/* محتوا */}
+               <div className="relative z-10 h-full flex flex-col justify-end p-6">
+                 <div className="text-sm font-bold mb-2 text-white">
+                   ۲٬۴۵۸٬۹۲۱ شنونده ماهانه
+                 </div>
+                 <p className="text-sm leading-7 text-white/90 max-w-[560px] line-clamp-3">
+                   {artistBio}
+                 </p>
+               </div>
+             </button>
+           </section>
+           <SectionRow
+             title="طرفداران همچنین گوش می‌دهند"
+             isShowAll={true}
+             showAllHref={`/collection/related-artists?artist=${artist.id}`}
+             cards={(homeData?.artists ?? []).filter((a) => a.id !== id)}
+           />
+           <SectionRow
+             title="بر اساس این هنرمند"
+             isShowAll={true}
+diff --git a/components/music/ArtistBioModal.tsx b/components/music/ArtistBioModal.tsx
+index 5e19e933cdf1073744d3359a054b71e972179212..1faeb152bd9f7552aa08641edd34546cd055aa86 100644
+--- a/components/music/ArtistBioModal.tsx
++++ b/components/music/ArtistBioModal.tsx
+@@ -1,61 +1,62 @@
+ "use client";
+ 
+ import { motion } from "framer-motion";
+ import { X } from "lucide-react";
++import Image from "next/image";
+ 
+ export default function ArtistBioModal({
+   open,
+   onClose,
+   artist,
+   bio,
+ }: {
+   open: boolean;
+   onClose: () => void;
+   artist: { title: string; cover: string };
+   bio: string;
+ }) {
+   if (!open) return null;
+ 
+   return (
+     <motion.div
+       initial={{ opacity: 0 }}
+       animate={{ opacity: 1 }}
+       className="fixed inset-0 z-[80] bg-bg-base/80 backdrop-blur-sm flex items-center justify-center p-6"
+       onClick={onClose}>
+       <motion.div
+         initial={{ scale: 0.96, y: 20 }}
+         animate={{ scale: 1, y: 0 }}
+         className="relative w-full max-w-3xl max-h-[86vh] overflow-y-auto rounded-lg bg-bg-surface shadow-[var(--shadow-card)] text-right"
+         onClick={(e) => e.stopPropagation()}>
+         <button
+           onClick={onClose}
+           className="absolute left-4 top-4 z-10 w-9 h-9 rounded-full bg-bg-overlay/90 hover:bg-bg-elevated flex items-center justify-center text-text-primary"
+           title="بستن">
+           <X className="w-5 h-5" />
+         </button>
+-        <img src={artist.cover} alt={artist.title} className="w-full h-[360px] object-cover object-center" />
++        <Image src={artist.cover} alt={artist.title} width={1200} height={360} className="w-full h-[360px] object-cover object-center" />
+         <div className="grid md:grid-cols-[160px_1fr] gap-8 md:gap-16 p-4 bg-bg-card">
+           <div className="space-y-6">
+             <div className="flex flex-row md:flex-col items-center gap-2">
+               <div className="text-3xl font-black tabular-nums">۳۶۴٬۳۹۸</div>
+               <div className="text-sm text-text-secondary">دنبال‌کننده</div>
+             </div>
+             <div className="flex flex-row md:flex-col items-center gap-2">
+               <div className="text-3xl font-black tabular-nums">۲٬۴۵۸٬۹۲۱</div>
+               <div className="text-sm text-text-secondary">شنونده ماهانه</div>
+             </div>
+             <div className="text-sm font-bold">تهران، ایران</div>
+           </div>
+           <div>
+             <h2 className="text-2xl font-black mb-4">{artist.title}</h2>
+             <p className="text-text-secondary leading-8">{bio}</p>
+             <p className="mt-4 text-text-secondary leading-8">
+               این صفحه نمایی نزدیک‌تر از هویت هنری، آثار محبوب و مسیر
+               موسیقایی خواننده را نمایش می‌دهد؛ درست مانند تجربه پروفایل
+               هنرمندان در وب‌اپ‌های موسیقی.
+             </p>
+           </div>
+         </div>
+       </motion.div>
+     </motion.div>
+   );
+diff --git a/components/music/ArtistHero.tsx b/components/music/ArtistHero.tsx
+index 8bbb96f1894a444254d683a9aada00993ded0bbc..5c73b6399b8e50f2fa59b38ba7dd691819b3fb7d 100644
+--- a/components/music/ArtistHero.tsx
++++ b/components/music/ArtistHero.tsx
+@@ -1,29 +1,30 @@
+ "use client";
+ 
+ import { motion } from "framer-motion";
+ import { Pause, Play, BadgeCheck, ArrowLeft } from "lucide-react";
++import Image from "next/image";
+ import { TransitionLink } from "@/components/view-transition";
+ import FollowButton from "@/components/music/FollowButton";
+ import { usePlayerStore } from "@/store/player-store";
+ import { isTrackInQueue } from "@/lib/playback-context";
+ import type { Card, Track } from "@/lib/mock-data";
+ 
+ export default function ArtistHero({
+   artist,
+   setTrack,
+   tracks,
+ }: {
+   artist: Card;
+   setTrack: (track: Track, queue?: Track[]) => void;
+   tracks?: Track[];
+   onOpenBio: () => void;
+ }) {
+   const seed = artist.id?.split("").reduce((a: number, c: string) => a + c.charCodeAt(0), 0) ?? 0;
+   const hue = (seed * 47) % 360;
+   const tintSoft = `hsl(${hue}, 38%, 14%)`;
+   const firstTrack = tracks?.[0];
+   const currentTrack = usePlayerStore((state) => state.track);
+   const isPlaying = usePlayerStore((state) => state.isPlaying);
+   const togglePlay = usePlayerStore((state) => state.togglePlay);
+   const isCurrentQueue = isTrackInQueue(currentTrack.id, tracks ?? []);
+ 
+@@ -33,51 +34,51 @@ export default function ArtistHero({
+     if (isCurrentQueue) {
+       togglePlay();
+       return;
+     }
+ 
+     setTrack(firstTrack, tracks);
+   };
+ 
+   return (
+     <div
+       className="relative flex flex-col items-center md:flex-row md:items-end p-4 pb-4 min-h-[480px] md:h-[340px] overflow-hidden transition-all"
+       style={{ backgroundColor: tintSoft }}>
+       <div
+         className="absolute inset-0 hidden md:block md:h-4/5"
+         style={{
+           backgroundImage: `linear-gradient(180deg, transparent 0%, ${tintSoft} 95%), url(${artist.cover})`,
+           backgroundSize: "cover",
+           backgroundPosition: "center 30%",
+         }}
+       />
+ 
+       <div className="absolute inset-0 md:hidden bg-gradient-to-b from-black/20 via-transparent to-black/60" />
+ 
+       <div className="relative z-10 md:hidden mt-12 mb-8">
+         <div className="w-52 h-52 rounded-full overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.4)] border-4 border-white/5">
+-          <img src={artist.cover} alt={artist.title} className="w-full h-full object-cover" />
++          <Image src={artist.cover} alt={artist.title} fill sizes="208px" className="w-full h-full object-cover" />
+         </div>
+       </div>
+ 
+       <div className="relative z-10 w-full flex flex-col items-start text-right">
+         <div className="flex items-center gap-2 mb-2 w-full justify-start">
+           <BadgeCheck className="w-5 h-5 md:w-6 md:h-6 text-blue-400 fill-blue-400 stroke-bg-base" />
+           <span className="text-xs md:text-sm font-medium">هنرمند تأیید شده</span>
+         </div>
+ 
+         <h1 className="text-4xl md:text-7xl font-black drop-shadow-2xl text-white w-full">{artist.title}</h1>
+ 
+         <p className="text-white/80 md:text-text-secondary mt-3 text-sm md:text-base w-full">۲٬۴۵۸٬۹۲۱ شنونده ماهانه</p>
+ 
+         <div className="pt-4 flex items-center justify-start max-md:justify-between gap-6 bg-transparent w-full">
+           <motion.button
+             whileHover={{ scale: 1.06 }}
+             whileTap={{ scale: 0.94 }}
+             onClick={handlePlayClick}
+             disabled={!firstTrack}
+             aria-label={isCurrentQueue && isPlaying ? "توقف پخش آهنگ‌های هنرمند" : "پخش آهنگ‌های هنرمند"}
+             className="w-14 h-14 rounded-full bg-accent-gold text-bg-base flex items-center justify-center shadow-[var(--shadow-glow-gold)] cursor-pointer disabled:cursor-not-allowed disabled:opacity-60">
+             {isCurrentQueue && isPlaying ? (
+               <Pause className="w-6 h-6 fill-current" />
+             ) : (
+               <Play className="w-6 h-6 fill-current mr-0.5" />
+diff --git a/components/music/ArtistTrackRow.tsx b/components/music/ArtistTrackRow.tsx
+index 15a064c0f2f01602abc9ab36cbef2b60610a3513..ccd90281c1c76fc987cf3c2fdedd55a5569cae72 100644
+--- a/components/music/ArtistTrackRow.tsx
++++ b/components/music/ArtistTrackRow.tsx
+@@ -1,28 +1,29 @@
+ "use client";
+ 
+ import { motion } from "framer-motion";
++import Image from "next/image";
+ import { Play, Pause, MoreHorizontal } from "lucide-react";
+ import LikeButton from "@/components/music/LikeButton";
+ import AnimatedBars from "@/components/music/AnimatedBars";
+ import {
+   normalizePlayableQueue,
+   normalizePlayableTrack,
+   type PlayableTrackInput,
+ } from "@/lib/music-catalog";
+ import type { Track } from "@/lib/mock-data";
+ import { usePlayerStore } from "@/store/player-store";
+ 
+ type ArtistRowTrack = PlayableTrackInput & { plays?: string };
+ type ArtistInfo = { title: string };
+ 
+ function formatDuration(duration: number | string | undefined) {
+   if (typeof duration === "string") return duration;
+ 
+   const sec = duration ?? 0;
+   return `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, "0")}`;
+ }
+ 
+ export default function ArtistTrackRow({
+   track,
+   index,
+   artist,
+@@ -78,53 +79,55 @@ export default function ArtistTrackRow({
+         aria-label={isActive ? `توقف پخش ${track.title}` : `پخش ${track.title}`}
+         className="hidden md:flex w-8 h-8 items-center justify-center text-text-secondary hover:text-text-primary">
+         {isCurrent ? (
+           <>
+             {isActive ? (
+               <Pause className="hidden group-hover:block w-4 h-4 fill-current text-accent-gold" />
+             ) : (
+               <Play className="hidden group-hover:block w-4 h-4 fill-current text-accent-gold" />
+             )}
+             <span className="group-hover:hidden">
+               <AnimatedBars isPlaying={isActive} />
+             </span>
+           </>
+         ) : (
+           <>
+             <span className="group-hover:hidden text-sm tabular-nums">
+               {index + 1}
+             </span>
+             <Play className="hidden group-hover:block w-4 h-4 fill-current" />
+           </>
+         )}
+       </button>
+ 
+       {/* ── Cover + Title ── */}
+       <div className="flex items-center gap-3 min-w-0 overflow-hidden">
+-        <img
++        <Image
+           src={track.cover}
+           alt={track.title ?? "آهنگ"}
++          width={40}
++          height={40}
+           className="w-10 h-10 rounded object-cover flex-shrink-0"
+         />
+         <div className="min-w-0 text-right">
+           <div
+             className={`font-bold text-sm truncate ${isCurrent ? "text-accent-gold" : "text-white"}`}>
+             {track.title}
+           </div>
+           <div className="text-xs text-text-secondary truncate">
+             {track.plays}
+           </div>
+         </div>
+       </div>
+ 
+       {/* ── Plays ── */}
+       <div className="text-sm text-text-secondary tabular-nums hidden md:block">
+         {track.plays}
+       </div>
+ 
+       {/* ── Actions + Duration ── */}
+       <div className="flex items-center justify-end gap-2 md:gap-4 text-text-secondary">
+         <div className="hidden md:block opacity-0 group-hover:opacity-100 transition-opacity">
+           <LikeButton track={track} artistTitle={artist?.title} />
+         </div>
+         <span className="text-sm tabular-nums">
+           {formatDuration(track.duration)}
+diff --git a/components/music/MusicCard.tsx b/components/music/MusicCard.tsx
+index e6a4da8338b51b535393fd0e475c623be9b1cdcd..b5e369e46c76469dd186707252297a33623d9b79 100644
+--- a/components/music/MusicCard.tsx
++++ b/components/music/MusicCard.tsx
+@@ -1,91 +1,94 @@
+ import { motion } from "framer-motion";
+ import { Pause, Play } from "lucide-react";
++import Image from "next/image";
+ import { TransitionLink } from "@/components/view-transition";
+ import { buildCardPlaybackQueue, isTrackInQueue } from "@/lib/playback-context";
+ import { usePlayerStore } from "@/store/player-store";
+ import type { Card } from "@/lib/mock-data";
+ 
+ export function MusicCard({ card }: { card: Card }) {
+   const { hoveredCardId, setHoveredCard, isPlaying, togglePlay, track, playTrack } = usePlayerStore();
+   const queue = buildCardPlaybackQueue(card);
+   const firstTrack = queue[0];
+   const isHovered = hoveredCardId === card.id;
+   const isCurrent = isTrackInQueue(track.id, queue);
+   const isCircle = card.type === "artist";
+ 
+   const linkTo = card.type === "artist" ? "/artist/$id" : "/playlist/$id";
+ 
+   function resolveTo(to: string, params?: Record<string, string>) {
+     return to.replace(/\$(\w+)/g, (_, k) => (params && params[k] ? params[k] : ""));
+   }
+ 
+   const handlePlay = (e: React.MouseEvent) => {
+     e.preventDefault();
+     e.stopPropagation();
+     
+     if (!firstTrack) return;
+ 
+     if (isCurrent) {
+       togglePlay();
+       return;
+     }
+     playTrack(firstTrack, queue);
+   };
+ 
+   return (
+     <motion.div
+       // initial={{scale: 1}}
+       onHoverStart={() => setHoveredCard(card.id)}
+       onHoverEnd={() => setHoveredCard(null)}
+       // whileHover={{ scale: 1.03 }}
+       transition={{ type: "spring", stiffness: 300, damping: 25 }}
+       className="shrink-0 w-[180px]"
+     >
+       <TransitionLink
+         href={resolveTo(linkTo, { id: card.id })}
+       >
+         <div className="block p-1.5 md:p-2 lg:p-3 rounded-lg bg-transparent hover:bg-bg-elevated group">
+         <div className="relative mb-4">
+-          <img
++          <Image
+             src={card.cover}
+             alt={card.title}
++            width={360}
++            height={360}
+             className={`w-full aspect-square object-cover shadow-[var(--shadow-card)] ${isCircle ? "rounded-full" : "rounded-lg"}`}
+           />
+           {/* gradient overlay on hover */}
+           <div className={`absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 ${isCircle ? "rounded-full" : "rounded-lg"}`} />
+ 
+           {/* Play button */}
+           <motion.button
+             onClick={handlePlay}
+             disabled={!firstTrack}
+             aria-label={isCurrent && isPlaying ? `توقف پخش ${card.title}` : `پخش ${card.title}`}
+             initial={false}
+             animate={{
+               opacity: isHovered || (isCurrent && isPlaying) ? 1 : 0,
+               y: isHovered || (isCurrent && isPlaying) ? 0 : 12,
+             }}
+             whileTap={{ scale: 0.92 }}
+             transition={{ duration: 0.2 }}
+             className="absolute bottom-2 left-2 w-12 h-12 rounded-full bg-accent-gold text-bg-base shadow-[var(--shadow-glow-gold)] flex items-center justify-center hover:scale-110 hover:bg-accent-gold/90 disabled:cursor-not-allowed disabled:opacity-60"
+           >
+             {isCurrent && isPlaying ? (
+               <Pause className="w-5 h-5 fill-current" />
+             ) : (
+               <Play className="w-5 h-5 fill-current mr-0.5" />
+             )}
+           </motion.button>
+         </div>
+ 
+         <h3 className="font-semibold text-text-primary text-sm mb-1 truncate">
+           {card.title}
+         </h3>
+         <p className="text-xs text-text-secondary text-truncate-2 leading-relaxed">
+           {card.type === "album" && card.tracks && card.tracks.length > 0
+             ? `${card.subtitle} • ${card.tracks.length} آهنگ`
+             : card.subtitle}
+         </p>
+       </div>
+       </TransitionLink>
+     </motion.div>
+   );
+-}
+\ No newline at end of file
++}
+diff --git a/components/music/NowPlayingPanel.tsx b/components/music/NowPlayingPanel.tsx
+index f961a0b3f4b9b779fa0b340c3091ba24451e6bc0..87b56cbb368f2a4e2b68ff6a2b6903adb79e29e2 100644
+--- a/components/music/NowPlayingPanel.tsx
++++ b/components/music/NowPlayingPanel.tsx
+@@ -135,56 +135,53 @@ function PanelHeader({
+   );
+ }
+ 
+ function PanelBody({
+   track,
+   fullscreen,
+ }: {
+   track: { title: string; artist: string; cover: string };
+   fullscreen: boolean;
+ }) {
+   const { data } = useHomeData();
+   const artist = data?.artists?.[0] ?? {
+     title: "",
+     cover: "/images/moein.jpg",
+   };
+   const album = data?.albums?.[0] ?? {
+     title: "",
+     cover: "/images/moein.jpg",
+     subtitle: "",
+   };
+ 
+   return (
+     <div
+       className={`flex flex-col gap-4 ${fullscreen ? "px-8 pb-12" : "px-4 pb-6"}`}>
+       {/* Cover */}
+-      <motion.img
+-        layout
+-        src={track.cover}
+-        alt={track.title}
+-        className={`w-full aspect-square object-cover rounded-lg shadow-[var(--shadow-card)] ${fullscreen ? "max-w-[420px] mx-auto" : ""}`}
+-      />
++      <div className={`relative w-full aspect-square rounded-lg shadow-[var(--shadow-card)] overflow-hidden ${fullscreen ? "max-w-[420px] mx-auto" : ""}`}>
++        <Image src={track.cover} alt={track.title} fill sizes={fullscreen ? "420px" : "360px"} className="object-cover" />
++      </div>
+ 
+       {/* Track meta */}
+       <div className="flex items-start justify-between gap-3">
+         <div className="min-w-0">
+           <div className="text-xl font-bold truncate hover:underline cursor-pointer">
+             {track.title}
+           </div>
+           <div className="text-sm text-text-secondary truncate hover:underline cursor-pointer">
+             {track.artist}
+           </div>
+         </div>
+         <div className="flex items-center gap-1 text-text-secondary">
+           <button className="w-8 h-8 rounded-full hover:bg-bg-elevated flex items-center justify-center hover:text-text-primary transition-colors">
+             <Share2 className="w-4 h-4" />
+           </button>
+           <button className="w-8 h-8 rounded-full hover:bg-bg-elevated flex items-center justify-center hover:text-text-primary transition-colors">
+             <div className="p-2">
+               <LikeButton
+                 track={track}
+                 artistTitle={track.artist}
+                 className="text-white/60"
+               />
+             </div>
+           </button>
+         </div>
+@@ -221,55 +218,51 @@ function PanelBody({
+ 
+       {/* Credits */}
+       <div className="rounded-lg bg-bg-card p-4">
+         <div className="flex items-center justify-between mb-3">
+           <div className="text-sm font-bold">عوامل</div>
+           <button className="text-xs text-text-secondary hover:underline">
+             نمایش همه
+           </button>
+         </div>
+         <div className="space-y-3">
+           <CreditRow name={track.artist} role="هنرمند اصلی" />
+           <CreditRow name="استودیو ترانه" role="تهیه کننده" />
+           <CreditRow name="بهرام دهلوی" role="آهنگساز" />
+         </div>
+       </div>
+ 
+       {/* Next in queue */}
+       <div className="rounded-lg bg-bg-card p-4">
+         <div className="flex items-center justify-between mb-3">
+           <div className="text-sm font-bold">بعدی در صف پخش</div>
+           <button className="text-xs text-text-secondary hover:underline">
+             باز کردن صف
+           </button>
+         </div>
+         <div className="flex items-center gap-3">
+-          <img
+-            src={album.cover}
+-            alt={album.title}
+-            className="w-10 h-10 rounded-md object-cover"
+-          />
++          <Image src={album.cover} alt={album.title} width={40} height={40} className="w-10 h-10 rounded-md object-cover" />
+           <div className="min-w-0">
+             <div className="text-sm font-medium truncate">{album.title}</div>
+             <div className="text-xs text-text-secondary truncate">
+               {album.subtitle}
+             </div>
+           </div>
+         </div>
+       </div>
+     </div>
+   );
+ }
+ 
+ function CreditRow({ name, role }: { name: string; role: string }) {
+   return (
+     <div className="flex items-center justify-between gap-3">
+       <div className="min-w-0">
+         <div className="text-sm font-medium truncate">{name}</div>
+         <div className="text-xs text-text-secondary truncate">{role}</div>
+       </div>
+       <button className="px-3 py-1 rounded-full border border-border-strong text-xs hover:scale-105 transition-transform">
+         دنبال کردن
+       </button>
+     </div>
+   );
+ }
+@@ -292,101 +285,90 @@ function FullscreenView({
+ 
+   return (
+     <div className="h-full flex flex-col">
+       <div className="px-6 py-4 flex items-center justify-between shrink-0">
+         <div className="text-base font-bold">{track.artist}</div>
+         <div className="flex items-center gap-1 text-text-secondary">
+           <button className="w-9 h-9 rounded-full hover:bg-white/10 flex items-center justify-center hover:text-text-primary transition-colors">
+             <MoreHorizontal className="w-5 h-5" />
+           </button>
+           <button
+             onClick={onFs}
+             title="کوچک کردن"
+             className="w-9 h-9 rounded-full hover:bg-white/10 flex items-center justify-center hover:text-text-primary transition-colors">
+             <Minimize2 className="w-5 h-5" />
+           </button>
+           <button
+             onClick={onClose}
+             className="w-9 h-9 rounded-full hover:bg-white/10 flex items-center justify-center hover:text-text-primary transition-colors">
+             <X className="w-5 h-5" />
+           </button>
+         </div>
+       </div>
+ 
+       <div ref={ref} className="flex-1 overflow-y-auto scroll-smooth">
+         <div className="min-h-[60vh] flex items-center justify-center px-6 pt-6 pb-12">
+-          <motion.img
+-            src={track.cover}
+-            alt={track.title}
+-            style={{ opacity: coverOpacity, scale: coverScale, y: coverY }}
+-            className="max-w-[420px] w-full aspect-square object-cover rounded-lg shadow-[0_30px_80px_rgba(0,0,0,0.5)]"
+-          />
++          <motion.div style={{ opacity: coverOpacity, scale: coverScale, y: coverY }} className="relative max-w-[420px] w-full aspect-square rounded-lg shadow-[0_30px_80px_rgba(0,0,0,0.5)] overflow-hidden">
++            <Image src={track.cover} alt={track.title} fill sizes="420px" className="object-cover" />
++          </motion.div>
+         </div>
+ 
+         <div className="max-w-5xl mx-auto px-8 pb-16 grid grid-cols-1 md:grid-cols-2 gap-6">
+           <div className="rounded-xl bg-white/5 backdrop-blur-md p-6">
+             <div className="flex items-center justify-between mb-4">
+               <div className="text-lg font-bold">درباره هنرمند</div>
+             </div>
+-            <img
+-              src={data?.artists?.[0]?.cover ?? ""}
+-              alt={data?.artists?.[0]?.title ?? ""}
+-              className="w-20 h-20 rounded-full object-cover mb-3"
+-            />
++            <Image src={data?.artists?.[0]?.cover ?? "/images/moein.jpg"} alt={data?.artists?.[0]?.title ?? ""} width={80} height={80} className="w-20 h-20 rounded-full object-cover mb-3" />
+             <div className="text-base font-bold mb-1">
+               {data?.artists?.[0]?.title ?? ""}
+             </div>
+             <div className="text-xs text-text-secondary mb-4">
+               ۲۱۹٬۲۷۴ شنونده ماهانه
+             </div>
+             <button className="px-5 py-1.5 rounded-full border border-border-strong text-sm font-bold hover:scale-105 transition-transform mb-4">
+               دنبال کردن
+             </button>
+             <p className="text-sm text-text-secondary leading-7">
+               یکی از برجسته‌ترین هنرمندان موسیقی فارسی با سبکی منحصربه‌فرد. آثار
+               این هنرمند ترکیبی از موسیقی سنتی و مدرن است که مخاطبان بسیاری در
+               سراسر جهان دارد.
+             </p>
+           </div>
+ 
+           <div className="flex flex-col gap-6">
+             <div className="rounded-xl bg-white/5 backdrop-blur-md p-6">
+               <div className="flex items-center justify-between mb-4">
+                 <div className="text-lg font-bold">عوامل</div>
+                 <button className="text-xs text-text-secondary hover:underline">
+                   نمایش همه
+                 </button>
+               </div>
+               <div className="space-y-4">
+                 <CreditRow name={track.artist} role="هنرمند اصلی" />
+               </div>
+             </div>
+ 
+             <div className="rounded-xl bg-white/5 backdrop-blur-md p-6">
+               <div className="flex items-center justify-between mb-4">
+                 <div className="text-lg font-bold">بعدی در صف پخش</div>
+                 <button className="text-xs text-text-secondary hover:underline">
+                   باز کردن صف
+                 </button>
+               </div>
+               <div className="flex items-center gap-3">
+-                <img
+-                  src={data?.albums?.[0]?.cover ?? "/images/moein.jpg"}
+-                  alt=""
+-                  className="w-12 h-12 rounded-md object-cover"
+-                />
++                <Image src={data?.albums?.[0]?.cover ?? "/images/moein.jpg"} alt="" width={48} height={48} className="w-12 h-12 rounded-md object-cover" />
+                 <div className="min-w-0">
+                   <div className="text-sm font-medium truncate">
+                     {data?.albums?.[0]?.title ?? ""}
+                   </div>
+                   <div className="text-xs text-text-secondary truncate">
+                     {data?.albums?.[0]?.subtitle ?? ""}
+                   </div>
+                 </div>
+               </div>
+             </div>
+           </div>
+         </div>
+       </div>
+     </div>
+   );
+ }
+diff --git a/components/music/PlaylistHeader.tsx b/components/music/PlaylistHeader.tsx
+index ccf3b423af936e4fc46f30f6c1c37eb8550ac40e..5f7c3c41a43c224d1ef03cfdeeff3d0b21b0e1cd 100644
+--- a/components/music/PlaylistHeader.tsx
++++ b/components/music/PlaylistHeader.tsx
+@@ -1,28 +1,29 @@
+ "use client";
+ 
+ import React, { useEffect, useState } from "react";
++import Image from "next/image";
+ import { Music, Heart, Pencil, Pause, Play, X } from "lucide-react";
+ import { TransitionLink } from "@/components/view-transition";
+ import AlbumSaveButton from "@/components/music/AlbumSaveButton";
+ import { ArrowLeft } from "lucide-react";
+ import { usePlayerStore } from "@/store/player-store";
+ import { isTrackInQueue } from "@/lib/playback-context";
+ import type { Card, Track } from "@/lib/mock-data";
+ import type { CustomPlaylist } from "@/store/library-store";
+ 
+ export default function PlaylistHeader({
+   custom,
+   isLiked,
+   headerCard,
+   cover,
+   title,
+   tracksLength,
+   fileRef,
+   onCoverChange,
+   tracks,
+   onUpdateDetails,
+ }: {
+   custom?: CustomPlaylist;
+   isLiked: boolean;
+   headerCard: Card;
+   cover?: string;
+@@ -67,66 +68,66 @@ export default function PlaylistHeader({
+   };
+ 
+   const saveDetails = (event: React.FormEvent) => {
+     event.preventDefault();
+     const cleanTitle = draftTitle.trim() || title;
+     onUpdateDetails?.({ title: cleanTitle, description: draftDescription.trim() });
+     setDetailsOpen(false);
+   };
+ 
+   return (
+     <>
+       <TransitionLink href="/" className="absolute top-5 left-5 z-50 md:hidden">
+         <div className="flex items-center justify-center w-10 h-10 rounded-full bg-bg-surface/50 text-gray-300 hover:text-white transition-all">
+           <ArrowLeft className="w-4 h-4" />
+         </div>
+       </TransitionLink>
+ 
+       <div className="relative px-4 pt-12 pb-6 bg-gradient-to-b from-violet-700/40 to-transparent md:pt-8">
+         <div className="flex flex-col items-center md:flex-row md:items-end gap-6">
+           <div className="relative w-48 h-48 md:w-56 md:h-56 mb-4 md:mb-0">
+             {custom ? (
+               <button
+                 onClick={() => fileRef.current?.click()}
+                 className="relative w-full h-full rounded-lg shadow-2xl overflow-hidden group bg-bg-elevated flex items-center justify-center">
+                 {cover ? (
+-                  <img src={cover} alt={title} className="w-full h-full object-cover" />
++                  <Image src={cover} alt={title} fill sizes="224px" className="w-full h-full object-cover" />
+                 ) : (
+                   <Music className="w-16 h-16 text-text-secondary" />
+                 )}
+                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center">
+                   <Pencil className="w-6 h-6 text-white" />
+                   <span className="mt-2 text-sm font-bold text-white">انتخاب تصویر</span>
+                 </div>
+                 <input ref={fileRef} onChange={onCoverChange} type="file" accept="image/*" className="hidden" />
+               </button>
+             ) : isLiked ? (
+               <div className="w-full h-full rounded-lg bg-gradient-to-br from-violet-500 to-fuchsia-700 flex items-center justify-center shadow-2xl">
+                 <Heart className="w-20 h-20 text-white fill-white" />
+               </div>
+             ) : (
+-              <img src={cover} alt={title} className="w-full h-full shadow-2xl object-cover" />
++              <Image src={cover} alt={title} fill sizes="224px" className="w-full h-full shadow-2xl object-cover" />
+             )}
+           </div>
+ 
+           <div className="flex-1 w-full text-right md:text-right">
+             <p className="hidden md:block text-xs font-bold uppercase mb-2">{custom ? "پلی‌لیست شخصی" : "پلی‌لیست"}</p>
+             {custom ? (
+               <button
+                 type="button"
+                 onClick={() => setDetailsOpen(true)}
+                 className="block w-full rounded-md text-right outline-none hover:underline focus-visible:ring-2 focus-visible:ring-white/80"
+                 aria-label="ویرایش اطلاعات پلی‌لیست"
+               >
+                 <h1 className="text-3xl md:text-7xl font-black text-white mb-2 leading-tight">{title}</h1>
+               </button>
+             ) : (
+               <h1 className="text-3xl md:text-7xl font-black text-white mb-2 leading-tight">{title}</h1>
+             )}
+             
+             {custom?.description && <p className="mb-2 max-w-2xl text-sm leading-6 text-white/70">{custom.description}</p>}
+             <p className="text-sm text-white/60 mt-1 md:mt-2">{tracksLength} آهنگ</p>
+           </div>
+         </div>
+ 
+         <div className="py-8 flex items-center gap-4 relative">
+           <div className="flex items-center gap-6">
+@@ -144,51 +145,51 @@ export default function PlaylistHeader({
+             </button>
+             {!custom && <AlbumSaveButton card={headerCard} className="cursor-pointer" />}
+             <button className="text-white/70">
+               <MoreHorizontalIcon />
+             </button>
+           </div>
+         </div>
+       </div>
+ 
+       {custom && detailsOpen && (
+         <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/70 px-4" role="dialog" aria-modal="true" dir="rtl">
+           <form onSubmit={saveDetails} className="w-full max-w-xl rounded-xl bg-[#282828] p-6 text-right text-white shadow-2xl">
+             <div className="mb-6 flex items-center justify-between">
+               <h2 className="text-2xl font-black">ویرایش اطلاعات</h2>
+               <button type="button" onClick={() => setDetailsOpen(false)} className="rounded-full p-2 text-text-secondary hover:bg-white/10 hover:text-white" aria-label="بستن">
+                 <X className="h-5 w-5" />
+               </button>
+             </div>
+ 
+             <div className="grid gap-4 md:grid-cols-[180px_1fr]">
+               <button
+                 type="button"
+                 onClick={() => fileRef.current?.click()}
+                 className="group relative flex aspect-square items-center justify-center overflow-hidden rounded bg-bg-elevated shadow-lg"
+               >
+-                {cover ? <img src={cover} alt={title} className="h-full w-full object-cover" /> : <Music className="h-16 w-16 text-text-secondary" />}
++                {cover ? <Image src={cover} alt={title} fill sizes="180px" className="h-full w-full object-cover" /> : <Music className="h-16 w-16 text-text-secondary" />}
+                 <span className="absolute inset-0 flex flex-col items-center justify-center bg-black/55 opacity-0 transition-opacity group-hover:opacity-100">
+                   <Pencil className="h-6 w-6" />
+                   <span className="mt-2 text-sm font-bold">انتخاب تصویر</span>
+                 </span>
+               </button>
+ 
+               <div className="space-y-4">
+                 <label className="block">
+                   <span className="mb-1 block text-xs font-bold text-text-secondary">نام</span>
+                   <input
+                     autoFocus
+                     value={draftTitle}
+                     onChange={(event) => setDraftTitle(event.target.value)}
+                     className="w-full rounded border border-border-strong bg-white/10 px-3 py-3 font-bold outline-none focus:border-white"
+                   />
+                 </label>
+                 <label className="block">
+                   <span className="mb-1 block text-xs font-bold text-text-secondary">توضیحات</span>
+                   <textarea
+                     value={draftDescription}
+                     onChange={(event) => setDraftDescription(event.target.value)}
+                     placeholder="توضیح اختیاری اضافه کنید"
+                     className="h-28 w-full resize-none rounded border border-transparent bg-white/10 px-3 py-3 text-sm outline-none placeholder:text-text-secondary focus:border-white"
+                   />
+                 </label>
+diff --git a/components/music/PlaylistTrackRow.tsx b/components/music/PlaylistTrackRow.tsx
+index 56cd53eb6a7a628bcf96970de93d572e45394790..ab40e2efcc336ce2570d03321e7aa3cbf40232b9 100644
+--- a/components/music/PlaylistTrackRow.tsx
++++ b/components/music/PlaylistTrackRow.tsx
+@@ -1,28 +1,29 @@
+ "use client";
+ 
+ import { motion } from "framer-motion";
++import Image from "next/image";
+ import { Play, Pause, MoreHorizontal } from "lucide-react";
+ import LikeButton from "@/components/music/LikeButton";
+ import AnimatedBars from "@/components/music/AnimatedBars";
+ import { normalizePlayableQueue, normalizePlayableTrack, type PlayableTrackInput } from "@/lib/music-catalog";
+ import type { Track } from "@/lib/mock-data";
+ import { usePlayerStore } from "@/store/player-store";
+ 
+ type PlaylistRowTrack = PlayableTrackInput & { plays?: string; album?: string };
+ type PlaylistArtist = { title?: string; cover?: string } | undefined;
+ 
+ type PlaylistTrackRowProps = {
+   t: PlaylistRowTrack;
+   i: number;
+   artist: PlaylistArtist;
+   cover?: string;
+   setTrack: (t: Track, queue?: Track[]) => void;
+   queue?: PlayableTrackInput[];
+   isPlaying: boolean;
+   currentTrack: Track | null | undefined;
+   formatDuration: (d: number | string) => string;
+   parseDuration: (d: number | string) => number;
+ };
+ 
+ export default function PlaylistTrackRow({
+   t,
+@@ -77,53 +78,55 @@ export default function PlaylistTrackRow({
+         onClick={handlePlaybackClick}
+         aria-label={isActive ? `توقف پخش ${t.title}` : `پخش ${t.title}`}
+         className="hidden md:flex w-8 h-8 items-center justify-center text-text-secondary hover:text-text-primary"
+       >
+         {isCurrent ? (
+           <>
+             {isActive ? (
+               <Pause className="hidden group-hover:block w-4 h-4 fill-current text-accent-gold" />
+             ) : (
+               <Play className="hidden group-hover:block w-4 h-4 fill-current text-accent-gold" />
+             )}
+             <span className="group-hover:hidden">
+               <AnimatedBars isPlaying={isActive} />
+             </span>
+           </>
+         ) : (
+           <>
+             <span className="group-hover:hidden text-sm tabular-nums">{i + 1}</span>
+             <Play className="hidden group-hover:block w-4 h-4 fill-current" />
+           </>
+         )}
+       </button>
+ 
+       {/* ── Cover + Title ── */}
+       <div className="flex items-center gap-3 min-w-0 overflow-hidden">
+-        <img
++        <Image
+           src={trackCover}
+           alt={t.title ?? "آهنگ"}
++          width={40}
++          height={40}
+           className="w-10 h-10 rounded object-cover flex-shrink-0"
+         />
+         <div className="min-w-0 text-right">
+           <div className={`font-bold text-sm truncate ${isCurrent ? "text-accent-gold" : "text-text-primary"}`}>
+             {t.title}
+           </div>
+           <div className="text-xs text-text-secondary truncate">{playableTrack.artist}</div>
+         </div>
+       </div>
+ 
+       {/* ── Plays / Album ── */}
+       <div className="text-sm text-text-secondary tabular-nums hidden md:block">{plays ?? t.album}</div>
+ 
+       {/* ── Actions + Duration ── */}
+       <div className="flex items-center justify-end gap-2 md:gap-4 text-text-secondary md:ml-2">
+         <div className="hidden md:block opacity-0 group-hover:opacity-100 transition-opacity">
+           <LikeButton track={t} artistTitle={artist?.title} />
+         </div>
+         <span className="text-sm tabular-nums max-md:hidden">{formatDuration(t.duration ?? 0)}</span>
+         <button
+           type="button"
+           onClick={(event) => event.stopPropagation()}
+           className="opacity-90 hover:text-text-primary transition-opacity"
+         >
+           <MoreHorizontal className="w-4 h-4" />
+diff --git a/components/music/Sidebar.tsx b/components/music/Sidebar.tsx
+index 49035fac6de8d58c008061b8e8d5ef7e8e6ef4d4..52e402e6ce1b6746dcd58bf3934abe911ab06be1 100644
+--- a/components/music/Sidebar.tsx
++++ b/components/music/Sidebar.tsx
+@@ -462,53 +462,55 @@ function SidebarItem({
+   collapsed: boolean;
+   active: boolean;
+   compact?: boolean;
+ }) {
+   const isLiked = item.id === "liked";
+   const isArtist = item.type === "artist";
+   const to = isArtist ? "/artist/$id" : "/playlist/$id";
+ 
+   const cover = isLiked ? null : item.cover;
+ 
+   if (collapsed) {
+     return (
+       <TooltipProvider delayDuration={0}>
+         <Tooltip>
+           <TooltipTrigger asChild>
+             <Link
+               to={to}
+               params={{ id: item.id }}
+               title={item.title}
+               className={`relative block ${active ? "ring-2 ring-accent-gold rounded-md" : ""}`}>
+               {isLiked ? (
+                 <div className="w-12 h-12 rounded-md bg-gradient-to-br from-violet-500 to-fuchsia-700 flex items-center justify-center">
+                   <Heart className="w-5 h-5 text-white fill-white" />
+                 </div>
+               ) : cover ? (
+-                <img
++                <Image
+                   src={cover}
+                   alt={item.title}
++                  width={48}
++                  height={48}
+                   className={`w-12 h-12 object-cover ${isArtist ? "rounded-full" : "rounded-md"}`}
+                 />
+               ) : (
+                 <div
+                   className={`w-12 h-12 bg-bg-elevated flex items-center justify-center ${isArtist ? "rounded-full" : "rounded-md"}`}>
+                   <span className="text-text-secondary text-xs">
+                     {item.title.slice(0, 2)}
+                   </span>
+                 </div>
+               )}
+             </Link>
+           </TooltipTrigger>
+           <TooltipContent
+             side="right"
+             sideOffset={8}
+             className="!p-2 bg-bg-surface">
+             <div className="flex flex-col items-start">
+               <div className="text-sm font-medium text-white truncate max-w-[180px] pr-1.5">
+                 {item.title}
+               </div>
+               <div className="text-xs text-gray-400 truncate max-w-[180px] pr-1.5">
+                 {isArtist ? "هنرمند" : "پلی‌لیست"}
+               </div>
+             </div>
+           </TooltipContent>
+@@ -522,93 +524,97 @@ function SidebarItem({
+       <Link
+         to={to}
+         params={{ id: item.id }}
+         className={`flex items-baseline gap-2 px-3 py-1.5 rounded hover:bg-bg-elevated transition-colors ${active ? "bg-bg-elevated" : ""}`}>
+         <span
+           className={`text-sm font-bold truncate ${isLiked ? "text-accent-emerald" : "text-text-primary"}`}>
+           {item.title}
+         </span>
+         <span className="text-xs text-text-secondary truncate">
+           • {isArtist ? "هنرمند" : isLiked ? "پلی‌لیست" : item.subtitle}
+         </span>
+       </Link>
+     );
+   }
+ 
+   return (
+     <Link
+       to={to}
+       params={{ id: item.id }}
+       className={`flex items-center gap-3 p-2 rounded-lg hover:bg-bg-elevated ${active ? "bg-bg-elevated" : ""}`}>
+       {isLiked ? (
+         <div className="w-12 h-12 rounded-md bg-gradient-to-br from-violet-500 to-fuchsia-700 flex items-center justify-center shrink-0">
+           <Heart className="w-5 h-5 text-white fill-white" />
+         </div>
+       ) : cover ? (
+-        <img
++        <Image
+           src={cover}
+           alt={item.title}
++          width={48}
++          height={48}
+           className={`w-12 h-12 object-cover shrink-0 ${isArtist ? "rounded-full" : "rounded-md"}`}
+         />
+       ) : (
+         <div
+           className={`w-12 h-12 bg-bg-elevated flex items-center justify-center shrink-0 ${isArtist ? "rounded-full" : "rounded-md"}`}>
+           <span className="text-text-secondary text-xs">♪</span>
+         </div>
+       )}
+       <div className="min-w-0">
+         <div className="text-sm font-medium text-text-primary truncate">
+           {item.title}
+         </div>
+         <div
+           className={`text-xs truncate ${isLiked ? "text-accent-emerald" : "text-text-secondary"}`}>
+           {isArtist ? "هنرمند" : item.subtitle}
+         </div>
+       </div>
+     </Link>
+   );
+ }
+ 
+ function ExpandedGrid({ items, large }: { items: Card[]; large?: boolean }) {
+   const min = large ? 170 : 110;
+   return (
+     <div
+       className="grid gap-3 p-2"
+       style={{
+         gridTemplateColumns: `repeat(auto-fill, minmax(${min}px, 1fr))`,
+       }}>
+       {items.map((item) => {
+         const isLiked = item.id === "liked";
+         const isArtist = item.type === "artist";
+         const to = isArtist ? "/artist/$id" : "/playlist/$id";
+         return (
+           <Link
+             key={item.id}
+             to={to}
+             params={{ id: item.id }}
+             className="group flex flex-col gap-2">
+             {isLiked ? (
+               <div className="w-full aspect-square rounded-md bg-gradient-to-br from-violet-500 to-fuchsia-700 flex items-center justify-center shadow-[var(--shadow-card)]">
+                 <Heart className="w-12 h-12 text-white fill-white" />
+               </div>
+             ) : item.cover ? (
+-              <img
++              <Image
+                 src={item.cover}
+                 alt={item.title}
++                width={340}
++                height={340}
+                 className={`w-full aspect-square object-cover shadow-[var(--shadow-card)] ${isArtist ? "rounded-full" : "rounded-md"}`}
+               />
+             ) : (
+               <div
+                 className={`w-full aspect-square bg-bg-elevated flex items-center justify-center ${isArtist ? "rounded-full" : "rounded-md"}`}>
+                 <span className="text-text-secondary text-3xl">♪</span>
+               </div>
+             )}
+             <div className="text-sm font-semibold truncate">{item.title}</div>
+             <div className="text-xs text-text-secondary truncate">
+               {isArtist ? "هنرمند" : item.subtitle}
+             </div>
+           </Link>
+         );
+       })}
+     </div>
+   );
+ }

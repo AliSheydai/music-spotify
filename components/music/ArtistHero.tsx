@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { Pause, Play, BadgeCheck, ArrowLeft } from "lucide-react";
+import Image from "next/image";
 import { TransitionLink } from "@/components/view-transition";
 import FollowButton from "@/components/music/FollowButton";
 import { usePlayerStore } from "@/store/player-store";
@@ -55,7 +56,7 @@ export default function ArtistHero({
 
       <div className="relative z-10 md:hidden mt-12 mb-8">
         <div className="w-52 h-52 rounded-full overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.4)] border-4 border-white/5">
-          <img src={artist.cover} alt={artist.title} className="w-full h-full object-cover" />
+          <Image src={artist.cover} alt={artist.title} fill sizes="208px" className="w-full h-full object-cover" />
         </div>
       </div>
 

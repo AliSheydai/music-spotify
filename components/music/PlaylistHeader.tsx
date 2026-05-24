@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import Image from "next/image";
 import { Music, Heart, Pencil, Pause, Play, X } from "lucide-react";
 import { TransitionLink } from "@/components/view-transition";
 import AlbumSaveButton from "@/components/music/AlbumSaveButton";
@@ -89,7 +90,7 @@ export default function PlaylistHeader({
                 onClick={() => fileRef.current?.click()}
                 className="relative w-full h-full rounded-lg shadow-2xl overflow-hidden group bg-bg-elevated flex items-center justify-center">
                 {cover ? (
-                  <img src={cover} alt={title} className="w-full h-full object-cover" />
+                  <Image src={cover} alt={title} fill sizes="224px" className="w-full h-full object-cover" />
                 ) : (
                   <Music className="w-16 h-16 text-text-secondary" />
                 )}
@@ -104,7 +105,7 @@ export default function PlaylistHeader({
                 <Heart className="w-20 h-20 text-white fill-white" />
               </div>
             ) : (
-              <img src={cover} alt={title} className="w-full h-full shadow-2xl object-cover" />
+              <Image src={cover} alt={title} fill sizes="224px" className="w-full h-full shadow-2xl object-cover" />
             )}
           </div>
 
@@ -166,7 +167,7 @@ export default function PlaylistHeader({
                 onClick={() => fileRef.current?.click()}
                 className="group relative flex aspect-square items-center justify-center overflow-hidden rounded bg-bg-elevated shadow-lg"
               >
-                {cover ? <img src={cover} alt={title} className="h-full w-full object-cover" /> : <Music className="h-16 w-16 text-text-secondary" />}
+                {cover ? <Image src={cover} alt={title} fill sizes="180px" className="h-full w-full object-cover" /> : <Music className="h-16 w-16 text-text-secondary" />}
                 <span className="absolute inset-0 flex flex-col items-center justify-center bg-black/55 opacity-0 transition-opacity group-hover:opacity-100">
                   <Pencil className="h-6 w-6" />
                   <span className="mt-2 text-sm font-bold">انتخاب تصویر</span>

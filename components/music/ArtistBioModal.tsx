@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { X } from "lucide-react";
+import Image from "next/image";
 
 export default function ArtistBioModal({
   open,
@@ -33,7 +34,7 @@ export default function ArtistBioModal({
           title="بستن">
           <X className="w-5 h-5" />
         </button>
-        <img src={artist.cover} alt={artist.title} className="w-full h-[360px] object-cover object-center" />
+        <Image src={artist.cover} alt={artist.title} width={1200} height={360} className="w-full h-[360px] object-cover object-center" />
         <div className="grid md:grid-cols-[160px_1fr] gap-8 md:gap-16 p-4 bg-bg-card">
           <div className="space-y-6">
             <div className="flex flex-row md:flex-col items-center gap-2">

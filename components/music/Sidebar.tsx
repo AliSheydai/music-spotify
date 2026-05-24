@@ -484,9 +484,11 @@ function SidebarItem({
                   <Heart className="w-5 h-5 text-white fill-white" />
                 </div>
               ) : cover ? (
-                <img
+                <Image
                   src={cover}
                   alt={item.title}
+                  width={48}
+                  height={48}
                   className={`w-12 h-12 object-cover ${isArtist ? "rounded-full" : "rounded-md"}`}
                 />
               ) : (
@@ -544,9 +546,11 @@ function SidebarItem({
           <Heart className="w-5 h-5 text-white fill-white" />
         </div>
       ) : cover ? (
-        <img
+        <Image
           src={cover}
           alt={item.title}
+          width={48}
+          height={48}
           className={`w-12 h-12 object-cover shrink-0 ${isArtist ? "rounded-full" : "rounded-md"}`}
         />
       ) : (
@@ -591,9 +595,11 @@ function ExpandedGrid({ items, large }: { items: Card[]; large?: boolean }) {
                 <Heart className="w-12 h-12 text-white fill-white" />
               </div>
             ) : item.cover ? (
-              <img
+              <Image
                 src={item.cover}
                 alt={item.title}
+                width={340}
+                height={340}
                 className={`w-full aspect-square object-cover shadow-[var(--shadow-card)] ${isArtist ? "rounded-full" : "rounded-md"}`}
               />
             ) : (
