@@ -4,6 +4,8 @@ import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 
+const AUTH_EASE = [0.22, 1, 0.36, 1] as const;
+
 // ─── Iranian mobile number validator ───────────────────────────────────────
 // Valid prefixes: 0910–0919, 0901, 0902, 0930–0939, 0941, 0920–0922,
 //                0932, 0933, 0935–0937, 0990–0992, 0993 …
@@ -37,7 +39,7 @@ const itemVariants = {
     opacity: 1,
     y: 0,
     filter: "blur(0px)",
-    transition: { duration: 0.5, ease: ([0.22, 1, 0.36, 1] as unknown) as any },
+    transition: { duration: 0.5, ease: AUTH_EASE },
   },
 };
 
@@ -112,7 +114,7 @@ export default function PhonePage() {
           style={{ background: "linear-gradient(90deg, #C9A84C, #8B5CF6, #C9A84C)" }}
           initial={{ scaleX: 0, transformOrigin: "left" }}
           animate={{ scaleX: 1 }}
-          transition={{ duration: 0.8, delay: 0.3, ease: ([0.22, 1, 0.36, 1] as unknown) as any }}
+          transition={{ duration: 0.8, delay: 0.3, ease: AUTH_EASE }}
         />
 
         <div className="p-8">

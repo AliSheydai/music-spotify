@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
@@ -9,6 +9,8 @@ import {
   InputOTPGroup,
   InputOTPSlot,
 } from "@/components/ui/input-otp";
+
+const AUTH_EASE = [0.22, 1, 0.36, 1] as const;
 
 // ─── Mock OTP ─────────────────────────────────────────────────────────────
 const MOCK_OTP = "123456";
@@ -25,7 +27,7 @@ const itemVariants = {
     opacity: 1,
     y: 0,
     filter: "blur(0px)",
-    transition: { duration: 0.5, ease: ([0.22, 1, 0.36, 1] as unknown) as any },
+    transition: { duration: 0.5, ease: AUTH_EASE },
   },
 };
 
@@ -43,11 +45,31 @@ function maskPhone(phone: string): string {
   return phone.replace(/^(09\d{2})(\d{3})(\d{4})$/, "$1 *** $3");
 }
 
+function subscribeToAuthPhoneChanges() {
+  return () => undefined;
+}
+
+function getStoredAuthPhone() {
+  return sessionStorage.getItem("auth_phone") ?? "";
+}
+
+function getServerAuthPhone() {
+  return "";
+}
+
+function useStoredAuthPhone() {
+  return useSyncExternalStore(
+    subscribeToAuthPhoneChanges,
+    getStoredAuthPhone,
+    getServerAuthPhone,
+  );
+}
+
 // ─── Component ────────────────────────────────────────────────────────────
 export default function OtpPage() {
   const router = useRouter();
 
-  const [phone, setPhone] = useState("");
+  const phone = useStoredAuthPhone();
   const [otp, setOtp] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
@@ -57,26 +79,12 @@ export default function OtpPage() {
   const [attempts, setAttempts] = useState(0);
   const { saveSession } = useAuth();
 
-  // Load phone from session
-  useEffect(() => {
-    const stored = sessionStorage.getItem("auth_phone") ?? "";
-    setPhone(stored);
-  }, []);
-
   // Countdown timer
   useEffect(() => {
     if (cooldown <= 0) return;
     const id = setInterval(() => setCooldown((c) => c - 1), 1000);
     return () => clearInterval(id);
   }, [cooldown]);
-
-  // Auto-submit when all 6 digits entered
-  useEffect(() => {
-    if (otp.length === 6) {
-      verifyOtp(otp);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [otp]);
 
   const verifyOtp = useCallback(
     async (value: string) => {
@@ -115,6 +123,16 @@ export default function OtpPage() {
       }
     },
     [status, attempts, router, saveSession, phone]
+  );
+
+  const handleOtpChange = useCallback(
+    (value: string) => {
+      setOtp(value);
+      if (value.length === 6) {
+        void verifyOtp(value);
+      }
+    },
+    [verifyOtp],
   );
 
   async function handleResend() {
@@ -365,7 +383,7 @@ export default function OtpPage() {
               <InputOTP
                 maxLength={6}
                 value={otp}
-                onChange={setOtp}
+                onChange={handleOtpChange}
                 disabled={status === "loading" || status === "success"}
               >
                 <InputOTPGroup dir="ltr">

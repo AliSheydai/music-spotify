@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import Image from "next/image";
 import { Music, Heart, Pencil, Pause, Play, X } from "lucide-react";
 import { TransitionLink } from "@/components/view-transition";
@@ -46,15 +46,14 @@ export default function PlaylistHeader({
   const isPlaying = usePlayerStore((state) => state.isPlaying);
   const togglePlay = usePlayerStore((state) => state.togglePlay);
   const firstTrack = tracks[0];
+  const displayCover = cover || headerCard.cover || "/images/moein.jpg";
   const isCurrentQueue = isTrackInQueue(currentTrack.id, tracks);
 
-  useEffect(() => {
-    if (!detailsOpen) {
-      setDraftTitle(title);
-      setDraftDescription(custom?.description ?? "");
-    }
-  }, [custom?.description, detailsOpen, title]);
-
+  const openDetailsEditor = () => {
+    setDraftTitle(title);
+    setDraftDescription(custom?.description ?? "");
+    setDetailsOpen(true);
+  };
 
   const handlePlayClick = () => {
     if (!firstTrack) return;
@@ -105,7 +104,7 @@ export default function PlaylistHeader({
                 <Heart className="w-20 h-20 text-white fill-white" />
               </div>
             ) : (
-              <Image src={cover} alt={title} fill sizes="224px" className="w-full h-full shadow-2xl object-cover" />
+              <Image src={displayCover} alt={title} fill sizes="224px" className="w-full h-full shadow-2xl object-cover" />
             )}
           </div>
 
@@ -114,7 +113,7 @@ export default function PlaylistHeader({
             {custom ? (
               <button
                 type="button"
-                onClick={() => setDetailsOpen(true)}
+                onClick={openDetailsEditor}
                 className="block w-full rounded-md text-right outline-none hover:underline focus-visible:ring-2 focus-visible:ring-white/80"
                 aria-label="ویرایش اطلاعات پلی‌لیست"
               >

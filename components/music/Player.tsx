@@ -17,13 +17,21 @@ import {
   Maximize2,
   ChevronDown,
 } from "lucide-react";
-import { useEffect, useState, useRef } from "react";
+import { useRef, useState } from "react";
 import { usePlayerStore } from "../../store/player-store";
 import { useLibraryStore, type CustomTrack } from "../../store/library-store";
 import LikeButton from "./LikeButton";
 import { toast } from "sonner";
 import TrackPlaylistToast from "@/components/music/TrackPlaylistToast";
 import type { Track } from "@/lib/mock-data";
+import {
+  clampPlaybackRatio,
+  formatPlaybackTime,
+  getNextRepeatMode,
+  type RepeatMode,
+} from "./player/playback-utils";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { usePlayerAudio } from "./player/use-player-audio";
 
 function MobileHeart({ track }: { track: Track }) {
   const liked = useLibraryStore((s) => s.likedTracks.some((x) => x.id === track.id));
@@ -62,30 +70,12 @@ function MobileHeart({ track }: { track: Track }) {
   );
 }
 
-function fmt(sec: number) {
-  const m = Math.floor(sec / 60);
-  const s = Math.floor(sec % 60);
-  return `${m}:${s.toString().padStart(2, "0")}`;
-}
-
-function useIsMobile() {
-  const [isMobile, setIsMobile] = useState(false);
-  useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 768);
-    check();
-    window.addEventListener("resize", check);
-    return () => window.removeEventListener("resize", check);
-  }, []);
-  return isMobile;
-}
-
 export function Player() {
   const {
     track,
     isPlaying,
     togglePlay,
     progress,
-    setProgress,
     volume,
     setVolume,
     playNext,
@@ -99,110 +89,24 @@ export function Player() {
   );
 
   const [shuffle, setShuffle] = useState(false);
-  const [repeat, setRepeat] = useState<"off" | "all" | "one">("off");
+  const [repeat, setRepeat] = useState<RepeatMode>("off");
   const [prevVolume, setPrevVolume] = useState(volume);
-  const [loadedAudio, setLoadedAudio] = useState<{ src?: string; duration: number }>({
-    duration: track.duration,
-  });
   const isMobile = useIsMobile();
-
-  const audioRef = useRef<HTMLAudioElement>(null);
-
-  const restoredSrcRef = useRef<string | undefined>(undefined);
-  const resumeProgressRef = useRef(progress);
-  useEffect(() => {
-    resumeProgressRef.current = usePlayerStore.getState().progress;
-    restoredSrcRef.current = undefined;
-  }, [track.src]);
-
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
-    audio.volume = volume;
-  }, [volume]);
-
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    if (isPlaying) {
-      void audio.play().catch(() => {
-        usePlayerStore.setState({ isPlaying: false });
-      });
-    } else {
-      audio.pause();
-    }
-  }, [isPlaying, track.src]);
-
-  const audioDuration = loadedAudio.src === track.src ? loadedAudio.duration : track.duration;
-  const current = progress * audioDuration;
-
-  const handleSeek = (value: number) => {
-    setProgress(value);
-    const audio = audioRef.current;
-    if (!audio || !Number.isFinite(audio.duration)) return;
-    audio.currentTime = value * audio.duration;
-  };
-
-  const restoreAudioPosition = () => {
-    const audio = audioRef.current;
-    if (!audio || !Number.isFinite(audio.duration) || audio.duration === 0) return;
-
-    if (restoredSrcRef.current === track.src) return;
-    restoredSrcRef.current = track.src;
-
-    const resumeProgress = resumeProgressRef.current;
-    if (resumeProgress <= 0) return;
-
-    const targetTime = Math.min(resumeProgress * audio.duration, Math.max(audio.duration - 0.25, 0));
-    if (targetTime > 0 && Math.abs(audio.currentTime - targetTime) > 0.5) {
-      audio.currentTime = targetTime;
-    }
-  };
-
-  const handleLoadedMetadata = () => {
-    const audio = audioRef.current;
-    if (audio && Number.isFinite(audio.duration) && audio.duration > 0) {
-      setLoadedAudio({ src: track.src, duration: audio.duration });
-    }
-
-    restoreAudioPosition();
-
-    if (isPlaying) {
-      void audioRef.current?.play().catch(() => {
-        usePlayerStore.setState({ isPlaying: false });
-      });
-    }
-  };
-
-  const handleTimeUpdate = () => {
-    const audio = audioRef.current;
-    if (!audio || !Number.isFinite(audio.duration) || audio.duration === 0) return;
-    setProgress(audio.currentTime / audio.duration);
-  };
-
-  const handleEnded = () => {
-    if (repeat === "one") {
-      handleSeek(0);
-      void audioRef.current?.play();
-      return;
-    }
-
-    if (shuffle) {
-      const { queue, playTrack } = usePlayerStore.getState();
-      const next = queue[Math.floor(Math.random() * queue.length)];
-      if (next) playTrack(next, queue);
-      return;
-    }
-    if (repeat === "all" || usePlayerStore.getState().currentIndex < usePlayerStore.getState().queue.length - 1) {
-      playNext();
-    } else {
-      usePlayerStore.setState({ isPlaying: false, progress: 0 });
-    }
-  };
+  const {
+    audioDuration,
+    audioRef,
+    currentTime,
+    handleEnded,
+    handleLoadedMetadata,
+    handleSeek,
+    handleTimeUpdate,
+  } = usePlayerAudio({
+    repeat,
+    shuffle,
+  });
 
   const handleRepeat = () => {
-    setRepeat((r) => (r === "off" ? "all" : r === "all" ? "one" : "off"));
+    setRepeat(getNextRepeatMode);
   };
 
   const handleMuteToggle = () => {
@@ -215,7 +119,6 @@ export function Player() {
   };
 
   const VolumeIcon = volume === 0 ? VolumeX : volume < 0.5 ? Volume1 : Volume2;
-
   const audioElement = (
     <audio
       ref={audioRef}
@@ -392,8 +295,8 @@ export function Player() {
                   accent
                 />
                 <div className="flex justify-between mt-1.5 text-[11px] text-white/40 tabular-nums">
-                  <span>{fmt(current)}</span>
-                  <span>{fmt(track.duration)}</span>
+                  <span>{formatPlaybackTime(currentTime)}</span>
+                  <span>{formatPlaybackTime(track.duration)}</span>
                 </div>
               </div>
 
@@ -590,9 +493,9 @@ export function Player() {
         </div>
 
         <div className="flex items-center gap-2 w-full max-w-[500px] text-[10px] text-text-secondary">
-          <span className="w-9 text-right tabular-nums">{fmt(current)}</span>
+          <span className="w-9 text-right tabular-nums">{formatPlaybackTime(currentTime)}</span>
           <ProgressSlider value={progress} onChange={handleSeek} />
-          <span className="w-9 tabular-nums">{fmt(audioDuration)}</span>
+          <span className="w-9 tabular-nums">{formatPlaybackTime(audioDuration)}</span>
         </div>
       </div>
 
@@ -641,7 +544,7 @@ function ProgressSlider({
   const handleClick = (e: React.MouseEvent) => {
     const r = e.currentTarget.getBoundingClientRect();
     const x = (r.right - e.clientX) / r.width;
-    onChange(Math.max(0, Math.min(1, x)));
+    onChange(clampPlaybackRatio(x));
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
@@ -649,7 +552,7 @@ function ProgressSlider({
     const r = trackRef.current.getBoundingClientRect();
     const touch = e.touches[0];
     const x = (r.right - touch.clientX) / r.width;
-    onChange(Math.max(0, Math.min(1, x)));
+    onChange(clampPlaybackRatio(x));
   };
 
   return (

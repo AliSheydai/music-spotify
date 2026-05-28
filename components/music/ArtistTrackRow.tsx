@@ -102,8 +102,8 @@ export default function ArtistTrackRow({
       {/* ── Cover + Title ── */}
       <div className="flex items-center gap-3 min-w-0 overflow-hidden">
         <Image
-          src={track.cover}
-          alt={track.title ?? "آهنگ"}
+          src={playableTrack.cover}
+          alt={playableTrack.title ?? "آهنگ"}
           width={40}
           height={40}
           className="w-10 h-10 rounded object-cover flex-shrink-0"
