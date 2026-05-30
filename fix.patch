@@ -1,1446 +1,769 @@
-diff --git a/app/auth/layout.tsx b/app/auth/layout.tsx
-index f91aa3192cc24ca7965d61bf027f727d4092e407..a40beeca734d6366dc1fcda0248fc4fe4e3b15fd 100644
---- a/app/auth/layout.tsx
-+++ b/app/auth/layout.tsx
-@@ -1,30 +1,32 @@
+diff --git a/app/artist/[id]/page.tsx b/app/artist/[id]/page.tsx
+index 0f0100c0e00338ea894743ed4174081669983b2c..5425060c37a11a997f3057730c2948afb1717453 100644
+--- a/app/artist/[id]/page.tsx
++++ b/app/artist/[id]/page.tsx
+@@ -1,128 +1,106 @@
  "use client";
  
- import { motion, AnimatePresence } from "framer-motion";
- import { usePathname } from "next/navigation";
+ import { motion } from "framer-motion";
+-import { useState } from "react";
+-import { useParams } from "next/navigation";
+ import Image from "next/image";
+ import { AppShell } from "@/components/music/AppShell";
+ import { SectionRow } from "@/components/music/SectionRow";
+-import { useArtist, useHomeData } from "@/lib/hooks";
+-import { usePlayerStore } from "@/store/player-store";
+ import ArtistHero from "@/components/music/ArtistHero";
+ import ArtistTrackRow from "@/components/music/ArtistTrackRow";
+ import ArtistBioModal from "@/components/music/ArtistBioModal";
+-import { buildArtistPlaybackQueue } from "@/lib/playback-context";  
+-// در Next.js پارامترها به این صورت دریافت می‌شوند
++import { useArtistPageData } from "@/hooks/useArtistPageData";
  
-+const AUTH_EASE = [0.22, 1, 0.36, 1] as const;
-+
- export default function AuthLayout({
-   children,
- }: {
-   children: React.ReactNode;
- }) {
-   const pathname = usePathname();
+ export default function ArtistPage() {
+-  const params = useParams();
+-  const id = typeof params?.id === "string" ? params.id : "";
+-
+-  // منطق دریافت هنرمند و محتوای مرتبط از TanStack Query
+-  const { data: artistData } = useArtist(id);
+-  const { data: homeData } = useHomeData();
+-  const artist = artistData?.artist ??
+-    homeData?.artists?.[0] ?? {
+-      id: "",
+-      title: "هنرمند",
+-      subtitle: "",
+-      cover: "/images/moein.jpg",
+-      type: "artist",
+-    };
+-  const [bioOpen, setBioOpen] = useState(false);
+-  const [popularExpanded, setPopularExpanded] = useState(false);
+-  const playTrack = usePlayerStore((s) => s.playTrack);
+-
+-  const playablePopularTracks = buildArtistPlaybackQueue(artist);
+-  const visiblePopularTracks = popularExpanded ? playablePopularTracks : playablePopularTracks.slice(0, 5);
+-
+-  const artistBio = `${artist.title} از چهره‌های شناخته‌شده موسیقی فارسی است...`;
+-  // const formatDuration = (sec: number) => `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, "0")}`;
+-
+-  const seed = artist.id.split("").reduce((a, c) => a + c.charCodeAt(0), 0);
+-  const hue = (seed * 47) % 360;
+-  const tint = `hsl(${hue}, 42%, 22%)`;
+-  const tintSoft = `hsl(${hue}, 38%, 14%)`;
++  const {
++    id,
++    artist,
++    homeData,
++    bioOpen,
++    setBioOpen,
++    popularExpanded,
++    setPopularExpanded,
++    playTrack,
++    playablePopularTracks,
++    visiblePopularTracks,
++    artistBio,
++    background,
++  } = useArtistPageData();
  
    return (
-     <div className="relative min-h-screen overflow-hidden bg-[#0A0A0F] flex items-center justify-center">
-       {/* Ambient background orbs */}
-       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-         <motion.div
-           className="absolute -top-40 -left-40 w-[600px] h-[600px] rounded-full"
-           style={{
-             background:
-               "radial-gradient(circle, rgba(201,168,76,0.07) 0%, transparent 70%)",
-           }}
-           animate={{
-             scale: [1, 1.15, 1],
-             opacity: [0.6, 1, 0.6],
-           }}
-           transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-         />
-         <motion.div
-           className="absolute -bottom-40 -right-40 w-[700px] h-[700px] rounded-full"
-@@ -70,48 +72,48 @@ export default function AuthLayout({
-           backgroundRepeat: "repeat",
-           backgroundSize: "128px 128px",
-         }}
-       />
- 
-       {/* Grid lines */}
-       <div
-         className="absolute inset-0 pointer-events-none opacity-[0.03]"
-         style={{
-           backgroundImage: `
-             linear-gradient(rgba(201,168,76,0.5) 1px, transparent 1px),
-             linear-gradient(90deg, rgba(201,168,76,0.5) 1px, transparent 1px)
-           `,
-           backgroundSize: "64px 64px",
-         }}
-       />
- 
-       {/* Page content with transition */}
-       <AnimatePresence mode="wait">
-         <motion.div
-           key={pathname}
-           className="relative z-10 w-full flex items-center justify-center px-4"
-           initial={{ opacity: 0, y: 24, filter: "blur(8px)" }}
-           animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-           exit={{ opacity: 0, y: -16, filter: "blur(8px)" }}
--          transition={{ duration: 0.45, ease: ([0.22, 1, 0.36, 1] as unknown) as any }}
-+          transition={{ duration: 0.45, ease: AUTH_EASE }}
-         >
-           {children}
-         </motion.div>
-       </AnimatePresence>
- 
-       {/* Bottom brand signature */}
+     <AppShell>
        <motion.div
-         className="absolute bottom-6 left-0 right-0 flex justify-center"
+         key={artist.id}
          initial={{ opacity: 0 }}
          animate={{ opacity: 1 }}
-         transition={{ delay: 1, duration: 1 }}
-       >
-         <span
-           className="text-xs tracking-[0.25em] uppercase"
-           style={{ color: "var(--text-muted, #4A5568)" }}
-         >
-           Secure · Encrypted · Private
-         </span>
-       </motion.div>
-     </div>
-   );
- }
-diff --git a/app/auth/otp/page.tsx b/app/auth/otp/page.tsx
-index 8251a7d4085a7e319fde68b4be6e16e155b30e2c..b02308e0ded52c657bfc66367af3541e25087277 100644
---- a/app/auth/otp/page.tsx
-+++ b/app/auth/otp/page.tsx
-@@ -1,144 +1,162 @@
- "use client";
+         className="-mx-6 md:-mx-10 -mt-4 px-2"
+-        style={{
+-          background: `linear-gradient(180deg, ${tint} 0%, ${tintSoft} 360px, var(--bg-surface) 720px)`,
+-        }}>
++        style={{ background }}
++      >
+         <ArtistHero artist={artist} setTrack={playTrack} tracks={playablePopularTracks} onOpenBio={() => setBioOpen(true)} />
  
--import { useState, useEffect, useCallback } from "react";
-+import { useState, useEffect, useCallback, useSyncExternalStore } from "react";
- import { useRouter } from "next/navigation";
- import { motion, AnimatePresence } from "framer-motion";
- import { useAuth } from "@/hooks/useAuth";
- import {
-   InputOTP,
-   InputOTPGroup,
-   InputOTPSlot,
- } from "@/components/ui/input-otp";
- 
-+const AUTH_EASE = [0.22, 1, 0.36, 1] as const;
-+
- // ─── Mock OTP ─────────────────────────────────────────────────────────────
- const MOCK_OTP = "123456";
- const RESEND_COOLDOWN = 90; // seconds
- 
- // ─── Animation variants ───────────────────────────────────────────────────
- const containerVariants = {
-   hidden: {},
-   visible: { transition: { staggerChildren: 0.07, delayChildren: 0.05 } },
- };
- const itemVariants = {
-   hidden: { opacity: 0, y: 18, filter: "blur(4px)" },
-   visible: {
-     opacity: 1,
-     y: 0,
-     filter: "blur(0px)",
--    transition: { duration: 0.5, ease: ([0.22, 1, 0.36, 1] as unknown) as any },
-+    transition: { duration: 0.5, ease: AUTH_EASE },
-   },
- };
- 
- // ─── Helpers ──────────────────────────────────────────────────────────────
- function formatSeconds(s: number): string {
-   const m = Math.floor(s / 60)
-     .toString()
-     .padStart(2, "0");
-   const sec = (s % 60).toString().padStart(2, "0");
-   return `${m}:${sec}`;
- }
- 
- function maskPhone(phone: string): string {
-   if (!phone) return "09xx xxx xxxx";
-   return phone.replace(/^(09\d{2})(\d{3})(\d{4})$/, "$1 *** $3");
- }
- 
-+function subscribeToAuthPhoneChanges() {
-+  return () => undefined;
-+}
-+
-+function getStoredAuthPhone() {
-+  return sessionStorage.getItem("auth_phone") ?? "";
-+}
-+
-+function getServerAuthPhone() {
-+  return "";
-+}
-+
-+function useStoredAuthPhone() {
-+  return useSyncExternalStore(
-+    subscribeToAuthPhoneChanges,
-+    getStoredAuthPhone,
-+    getServerAuthPhone,
-+  );
-+}
-+
- // ─── Component ────────────────────────────────────────────────────────────
- export default function OtpPage() {
-   const router = useRouter();
- 
--  const [phone, setPhone] = useState("");
-+  const phone = useStoredAuthPhone();
-   const [otp, setOtp] = useState("");
-   const [error, setError] = useState<string | null>(null);
-   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
-   const [cooldown, setCooldown] = useState(RESEND_COOLDOWN);
-   const [resending, setResending] = useState(false);
-   const [shake, setShake] = useState(false);
-   const [attempts, setAttempts] = useState(0);
-   const { saveSession } = useAuth();
- 
--  // Load phone from session
--  useEffect(() => {
--    const stored = sessionStorage.getItem("auth_phone") ?? "";
--    setPhone(stored);
--  }, []);
--
-   // Countdown timer
-   useEffect(() => {
-     if (cooldown <= 0) return;
-     const id = setInterval(() => setCooldown((c) => c - 1), 1000);
-     return () => clearInterval(id);
-   }, [cooldown]);
- 
--  // Auto-submit when all 6 digits entered
--  useEffect(() => {
--    if (otp.length === 6) {
--      verifyOtp(otp);
--    }
--    // eslint-disable-next-line react-hooks/exhaustive-deps
--  }, [otp]);
--
-   const verifyOtp = useCallback(
-     async (value: string) => {
-       if (status === "loading" || status === "success") return;
-       setError(null);
-       setStatus("loading");
- 
-       // Simulate network latency
-       await new Promise((r) => setTimeout(r, 900));
- 
-       if (value === MOCK_OTP) {
-         setStatus("success");
-         try {
-           saveSession(phone || "");
-         } catch {
-           // ignore
-         }
-         // Navigate after success animation
-         setTimeout(() => {
-           router.push("/");
-         }, 1600);
-       } else {
-         setStatus("error");
-         setAttempts((a) => a + 1);
-         setError(
-           attempts >= 2
-             ? "کد اشتباه است. آیا می‌خواهید کد جدیدی دریافت کنید؟"
-             : "کد وارد شده صحیح نیست"
-         );
-         setShake(true);
-         setTimeout(() => {
-           setShake(false);
-           setStatus("idle");
-           setOtp("");
-         }, 600);
-       }
-     },
-     [status, attempts, router, saveSession, phone]
-   );
- 
-+  const handleOtpChange = useCallback(
-+    (value: string) => {
-+      setOtp(value);
-+      if (value.length === 6) {
-+        void verifyOtp(value);
-+      }
-+    },
-+    [verifyOtp],
-+  );
-+
-   async function handleResend() {
-     if (cooldown > 0 || resending) return;
-     setResending(true);
-     setError(null);
-     setOtp("");
-     setAttempts(0);
-     await new Promise((r) => setTimeout(r, 1000));
-     setCooldown(RESEND_COOLDOWN);
-     setResending(false);
-     setStatus("idle");
-   }
- 
-   const slotBorderColor =
-     status === "success"
-       ? "rgba(16,185,129,0.7)"
-       : status === "error"
-       ? "rgba(244,114,182,0.7)"
-       : "rgba(201,168,76,0.4)";
- 
-   const slotGlow =
-     status === "success"
-       ? "0 0 16px rgba(16,185,129,0.25)"
-       : status === "error"
-       ? "0 0 16px rgba(244,114,182,0.25)"
-       : "0 0 16px rgba(201,168,76,0.15)";
-@@ -343,51 +361,51 @@ export default function OtpPage() {
-                   font-weight: 600 !important;
-                   border-radius: 12px !important;
-                   background: rgba(37, 37, 53, 0.7) !important;
-                   border: 1.5px solid rgba(255,255,255,0.08) !important;
-                   color: #E2E8F0 !important;
-                   transition: border-color 0.2s, box-shadow 0.2s !important;
-                   font-family: 'SF Mono', 'Fira Code', monospace !important;
-                 }
-                 [data-slot="input-otp-slot"][data-active="true"] {
-                   border-color: ${slotBorderColor} !important;
-                   box-shadow: ${slotGlow} !important;
-                 }
-                 [data-slot="input-otp-slot"][data-filled="true"] {
-                   border-color: ${slotBorderColor} !important;
-                   background: rgba(37,37,53,0.95) !important;
-                 }
-                 [data-slot="input-otp-group"] {
-                   gap: 8px !important;
-                 }
-                 @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700&display=swap');
-               `}</style>
- 
-               <InputOTP
-                 maxLength={6}
-                 value={otp}
--                onChange={setOtp}
-+                onChange={handleOtpChange}
-                 disabled={status === "loading" || status === "success"}
-               >
-                 <InputOTPGroup dir="ltr">
-                   <InputOTPSlot index={0} />
-                   <InputOTPSlot index={1} />
-                   <InputOTPSlot index={2} />
-                   <InputOTPSlot index={3} />
-                   <InputOTPSlot index={4} />
-                   <InputOTPSlot index={5} />
-                 </InputOTPGroup>
-               </InputOTP>
-             </motion.div>
- 
-             {/* Loading dots */}
-             <AnimatePresence>
-               {status === "loading" && (
-                 <motion.div
-                   className="flex justify-center gap-1 mb-4"
-                   initial={{ opacity: 0 }}
-                   animate={{ opacity: 1 }}
-                   exit={{ opacity: 0 }}
-                 >
-                   {[0, 1, 2].map((i) => (
-                     <motion.div
-                       key={i}
-diff --git a/app/auth/phone/page.tsx b/app/auth/phone/page.tsx
-index 093416d3203506b05ef4f6eb0182aac0ee0e85bc..4caea59453c35dcbd05c9f3d9546d37b0788e2da 100644
---- a/app/auth/phone/page.tsx
-+++ b/app/auth/phone/page.tsx
-@@ -1,65 +1,67 @@
- "use client";
- 
- import { useState, useRef } from "react";
- import { useRouter } from "next/navigation";
- import { motion, AnimatePresence } from "framer-motion";
- 
-+const AUTH_EASE = [0.22, 1, 0.36, 1] as const;
-+
- // ─── Iranian mobile number validator ───────────────────────────────────────
- // Valid prefixes: 0910–0919, 0901, 0902, 0930–0939, 0941, 0920–0922,
- //                0932, 0933, 0935–0937, 0990–0992, 0993 …
- const IRAN_MOBILE_REGEX = /^09[0-9]{9}$/;
- 
- function validateIranPhone(value: string): string | null {
-   const digits = value.replace(/\D/g, "");
-   if (!digits) return "شماره موبایل را وارد کنید";
-   if (digits.length < 11) return "شماره موبایل باید ۱۱ رقم باشد";
-   if (!IRAN_MOBILE_REGEX.test(digits)) return "شماره موبایل معتبر نیست";
-   return null;
- }
- 
- // ─── Format as 0912 345 6789 ─────────────────────────────────────────────
- function formatPhone(raw: string): string {
-   const digits = raw.replace(/\D/g, "").slice(0, 11);
-   if (digits.length <= 4) return digits;
-   if (digits.length <= 7) return `${digits.slice(0, 4)} ${digits.slice(4)}`;
-   return `${digits.slice(0, 4)} ${digits.slice(4, 7)} ${digits.slice(7)}`;
- }
- 
- // ─── Animation variants ───────────────────────────────────────────────────
- const containerVariants = {
-   hidden: {},
-   visible: { transition: { staggerChildren: 0.08, delayChildren: 0.1 } },
- };
- 
- const itemVariants = {
-   hidden: { opacity: 0, y: 20, filter: "blur(4px)" },
-   visible: {
-     opacity: 1,
-     y: 0,
-     filter: "blur(0px)",
--    transition: { duration: 0.5, ease: ([0.22, 1, 0.36, 1] as unknown) as any },
-+    transition: { duration: 0.5, ease: AUTH_EASE },
-   },
- };
- 
- export default function PhonePage() {
-   const router = useRouter();
-   const inputRef = useRef<HTMLInputElement>(null);
- 
-   const [rawValue, setRawValue] = useState("");
-   const [error, setError] = useState<string | null>(null);
-   const [touched, setTouched] = useState(false);
-   const [loading, setLoading] = useState(false);
-   const [shake, setShake] = useState(false);
- 
-   const formatted = formatPhone(rawValue);
-   const digits = rawValue.replace(/\D/g, "");
- 
-   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
-     const raw = e.target.value.replace(/\D/g, "").slice(0, 11);
-     setRawValue(raw);
-     if (touched) {
-       setError(validateIranPhone(raw));
-     }
-   }
- 
-   function handleBlur() {
-@@ -90,51 +92,51 @@ export default function PhonePage() {
-   const isValid = !error && digits.length === 11;
- 
-   return (
-     <motion.div
-       className="w-full max-w-sm"
-       variants={containerVariants}
-       initial="hidden"
-       animate="visible"
-     >
-       {/* Card */}
-       <div
-         className="relative rounded-2xl overflow-hidden"
-         style={{
-           background: "rgba(26, 26, 37, 0.85)",
-           backdropFilter: "blur(24px)",
-           border: "1px solid rgba(255,255,255,0.08)",
-           boxShadow: "0 4px 48px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.04)",
-         }}
-       >
-         {/* Gold top bar */}
-         <motion.div
-           className="h-[2px] w-full"
-           style={{ background: "linear-gradient(90deg, #C9A84C, #8B5CF6, #C9A84C)" }}
-           initial={{ scaleX: 0, transformOrigin: "left" }}
-           animate={{ scaleX: 1 }}
--          transition={{ duration: 0.8, delay: 0.3, ease: ([0.22, 1, 0.36, 1] as unknown) as any }}
-+          transition={{ duration: 0.8, delay: 0.3, ease: AUTH_EASE }}
-         />
- 
-         <div className="p-8">
-           {/* Logo mark */}
-           <motion.div variants={itemVariants} className="mb-8 flex justify-center">
-             <div className="relative">
-               <motion.div
-                 className="w-16 h-16 rounded-2xl flex items-center justify-center"
-                 style={{
-                   background: "linear-gradient(135deg, rgba(201,168,76,0.15), rgba(139,92,246,0.15))",
-                   border: "1px solid rgba(201,168,76,0.25)",
-                 }}
-                 whileHover={{ scale: 1.05 }}
-               >
-                 <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-                   <path
-                     d="M16 4C9.37 4 4 9.37 4 16s5.37 12 12 12 12-5.37 12-12S22.63 4 16 4zm0 4a4 4 0 110 8 4 4 0 010-8zm0 17.2A8.8 8.8 0 017.6 21c.02-2.8 5.6-4.34 8.4-4.34s8.38 1.54 8.4 4.34A8.8 8.8 0 0116 25.2z"
-                     fill="url(#logoGrad)"
-                   />
-                   <defs>
-                     <linearGradient id="logoGrad" x1="4" y1="4" x2="28" y2="28">
-                       <stop stopColor="#C9A84C" />
-                       <stop offset="1" stopColor="#8B5CF6" />
-                     </linearGradient>
-                   </defs>
-diff --git a/components/music/ArtistTrackRow.tsx b/components/music/ArtistTrackRow.tsx
-index ccd90281c1c76fc987cf3c2fdedd55a5569cae72..2e4d42acdc3907ac47af093e6efa088ff4ccf65c 100644
---- a/components/music/ArtistTrackRow.tsx
-+++ b/components/music/ArtistTrackRow.tsx
-@@ -80,52 +80,52 @@ export default function ArtistTrackRow({
-         className="hidden md:flex w-8 h-8 items-center justify-center text-text-secondary hover:text-text-primary">
-         {isCurrent ? (
-           <>
-             {isActive ? (
-               <Pause className="hidden group-hover:block w-4 h-4 fill-current text-accent-gold" />
-             ) : (
-               <Play className="hidden group-hover:block w-4 h-4 fill-current text-accent-gold" />
-             )}
-             <span className="group-hover:hidden">
-               <AnimatedBars isPlaying={isActive} />
-             </span>
-           </>
-         ) : (
-           <>
-             <span className="group-hover:hidden text-sm tabular-nums">
-               {index + 1}
-             </span>
-             <Play className="hidden group-hover:block w-4 h-4 fill-current" />
-           </>
-         )}
-       </button>
- 
-       {/* ── Cover + Title ── */}
-       <div className="flex items-center gap-3 min-w-0 overflow-hidden">
-         <Image
--          src={track.cover}
--          alt={track.title ?? "آهنگ"}
-+          src={playableTrack.cover}
-+          alt={playableTrack.title ?? "آهنگ"}
-           width={40}
-           height={40}
-           className="w-10 h-10 rounded object-cover flex-shrink-0"
-         />
-         <div className="min-w-0 text-right">
-           <div
-             className={`font-bold text-sm truncate ${isCurrent ? "text-accent-gold" : "text-white"}`}>
-             {track.title}
+         <section className="px-6 py-8">
+           <h2 className="text-2xl font-black mb-4">محبوب‌ترین‌ها</h2>
+           <div className="max-w-5xl space-y-1" dir="rtl">
+             {visiblePopularTracks.map((track, index) => (
+               <ArtistTrackRow key={track.id} track={track} index={index} artist={artist} setTrack={playTrack} queue={playablePopularTracks} />
+             ))}
            </div>
-           <div className="text-xs text-text-secondary truncate">
-             {track.plays}
-           </div>
-         </div>
-       </div>
+           <button
+             onClick={() => setPopularExpanded((value) => !value)}
+             className="mt-4 text-sm font-bold text-text-secondary hover:text-text-primary"
+           >
+             {popularExpanded ? "نمایش کمتر" : "نمایش بیشتر"}
+           </button>
+         </section>
  
-       {/* ── Plays ── */}
-       <div className="text-sm text-text-secondary tabular-nums hidden md:block">
-         {track.plays}
-       </div>
+         <div className="px-6">
+           <SectionRow
+             title="آلبوم‌ها و تک‌آهنگ‌ها"
+             isShowAll={true}
+             showAllHref={`/collection/albums?artist=${artist.id}`}
+             cards={(homeData?.albums ?? []).slice().reverse()}
+           />
  
-       {/* ── Actions + Duration ── */}
-       <div className="flex items-center justify-end gap-2 md:gap-4 text-text-secondary">
-         <div className="hidden md:block opacity-0 group-hover:opacity-100 transition-opacity">
-           <LikeButton track={track} artistTitle={artist?.title} />
-         </div>
-diff --git a/components/music/Player.tsx b/components/music/Player.tsx
-index 768eec6ea63ecdde4e1364b19de2cd96c6746790..67194578411672ae89ae428aa18b8c253af92b0f 100644
---- a/components/music/Player.tsx
-+++ b/components/music/Player.tsx
-@@ -1,243 +1,146 @@
- "use client";
- 
- import { motion, AnimatePresence } from "framer-motion";
- import {
-   Play,
-   Pause,
-   SkipBack,
-   SkipForward,
-   Shuffle,
-   Repeat,
-   Volume2,
-   VolumeX,
-   Volume1,
-   Heart,
-   ListMusic,
-   Mic2,
-   Maximize2,
-   ChevronDown,
- } from "lucide-react";
--import { useEffect, useState, useRef } from "react";
-+import { useRef, useState } from "react";
- import { usePlayerStore } from "../../store/player-store";
- import { useLibraryStore, type CustomTrack } from "../../store/library-store";
- import LikeButton from "./LikeButton";
- import { toast } from "sonner";
- import TrackPlaylistToast from "@/components/music/TrackPlaylistToast";
- import type { Track } from "@/lib/mock-data";
-+import {
-+  clampPlaybackRatio,
-+  formatPlaybackTime,
-+  getNextRepeatMode,
-+  type RepeatMode,
-+} from "./player/playback-utils";
-+import { useIsMobile } from "@/hooks/use-mobile";
-+import { usePlayerAudio } from "./player/use-player-audio";
- 
- function MobileHeart({ track }: { track: Track }) {
-   const liked = useLibraryStore((s) => s.likedTracks.some((x) => x.id === track.id));
-   const toggleLikedTrack = useLibraryStore((s) => s.toggleLikedTrack);
- 
-   const handleClick = (e: React.MouseEvent) => {
-     e.stopPropagation();
-     const willBeLiked = !liked;
-     const savedTrack: CustomTrack = {
-       id: track.id,
-       title: track.title,
-       artist: track.artist ?? "",
-       album: track.album ?? "",
-       duration: String(track.duration ?? ""),
-       cover: track.cover,
-       src: track.src,
-     };
- 
-     toggleLikedTrack(savedTrack);
- 
-     if (willBeLiked) {
-       toast.custom((toastId) => <TrackPlaylistToast toastId={toastId} track={savedTrack} />, { duration: 7000 });
-     } else {
-       toast("از اهنگ های لایک شده حذف شد.");
-     }
-   };
- 
-   return (
-     <button
-       onClick={handleClick}
-       className={`p-2 transition-colors ${liked ? "text-[var(--accent-gold)]" : "text-white/60 hover:text-white"}`}
-       style={liked ? { color: "var(--accent-gold)" } : undefined}
-     >
-       <Heart className="w-5 h-5 fill-current" />
-     </button>
-   );
- }
- 
--function fmt(sec: number) {
--  const m = Math.floor(sec / 60);
--  const s = Math.floor(sec % 60);
--  return `${m}:${s.toString().padStart(2, "0")}`;
--}
--
--function useIsMobile() {
--  const [isMobile, setIsMobile] = useState(false);
--  useEffect(() => {
--    const check = () => setIsMobile(window.innerWidth < 768);
--    check();
--    window.addEventListener("resize", check);
--    return () => window.removeEventListener("resize", check);
--  }, []);
--  return isMobile;
--}
--
- export function Player() {
-   const {
-     track,
-     isPlaying,
-     togglePlay,
-     progress,
--    setProgress,
-     volume,
-     setVolume,
-     playNext,
-     playPrevious,
-   } = usePlayerStore();
-   const toggleNowPlaying = usePlayerStore((s) => s.toggleNowPlaying);
-   const nowPlayingOpen = usePlayerStore((s) => s.nowPlayingOpen);
-   const nowPlayingFullscreen = usePlayerStore((s) => s.nowPlayingFullscreen);
-   const toggleNowPlayingFullscreen = usePlayerStore(
-     (s) => s.toggleNowPlayingFullscreen,
-   );
- 
-   const [shuffle, setShuffle] = useState(false);
--  const [repeat, setRepeat] = useState<"off" | "all" | "one">("off");
-+  const [repeat, setRepeat] = useState<RepeatMode>("off");
-   const [prevVolume, setPrevVolume] = useState(volume);
--  const [loadedAudio, setLoadedAudio] = useState<{ src?: string; duration: number }>({
--    duration: track.duration,
--  });
-   const isMobile = useIsMobile();
--
--  const audioRef = useRef<HTMLAudioElement>(null);
--
--  const restoredSrcRef = useRef<string | undefined>(undefined);
--  const resumeProgressRef = useRef(progress);
--  useEffect(() => {
--    resumeProgressRef.current = usePlayerStore.getState().progress;
--    restoredSrcRef.current = undefined;
--  }, [track.src]);
--
--  useEffect(() => {
--    const audio = audioRef.current;
--    if (!audio) return;
--    audio.volume = volume;
--  }, [volume]);
--
--  useEffect(() => {
--    const audio = audioRef.current;
--    if (!audio) return;
--
--    if (isPlaying) {
--      void audio.play().catch(() => {
--        usePlayerStore.setState({ isPlaying: false });
--      });
--    } else {
--      audio.pause();
--    }
--  }, [isPlaying, track.src]);
--
--  const audioDuration = loadedAudio.src === track.src ? loadedAudio.duration : track.duration;
--  const current = progress * audioDuration;
--
--  const handleSeek = (value: number) => {
--    setProgress(value);
--    const audio = audioRef.current;
--    if (!audio || !Number.isFinite(audio.duration)) return;
--    audio.currentTime = value * audio.duration;
--  };
--
--  const restoreAudioPosition = () => {
--    const audio = audioRef.current;
--    if (!audio || !Number.isFinite(audio.duration) || audio.duration === 0) return;
--
--    if (restoredSrcRef.current === track.src) return;
--    restoredSrcRef.current = track.src;
--
--    const resumeProgress = resumeProgressRef.current;
--    if (resumeProgress <= 0) return;
--
--    const targetTime = Math.min(resumeProgress * audio.duration, Math.max(audio.duration - 0.25, 0));
--    if (targetTime > 0 && Math.abs(audio.currentTime - targetTime) > 0.5) {
--      audio.currentTime = targetTime;
--    }
--  };
--
--  const handleLoadedMetadata = () => {
--    const audio = audioRef.current;
--    if (audio && Number.isFinite(audio.duration) && audio.duration > 0) {
--      setLoadedAudio({ src: track.src, duration: audio.duration });
--    }
--
--    restoreAudioPosition();
--
--    if (isPlaying) {
--      void audioRef.current?.play().catch(() => {
--        usePlayerStore.setState({ isPlaying: false });
--      });
--    }
--  };
--
--  const handleTimeUpdate = () => {
--    const audio = audioRef.current;
--    if (!audio || !Number.isFinite(audio.duration) || audio.duration === 0) return;
--    setProgress(audio.currentTime / audio.duration);
--  };
--
--  const handleEnded = () => {
--    if (repeat === "one") {
--      handleSeek(0);
--      void audioRef.current?.play();
--      return;
--    }
--
--    if (shuffle) {
--      const { queue, playTrack } = usePlayerStore.getState();
--      const next = queue[Math.floor(Math.random() * queue.length)];
--      if (next) playTrack(next, queue);
--      return;
--    }
--    if (repeat === "all" || usePlayerStore.getState().currentIndex < usePlayerStore.getState().queue.length - 1) {
--      playNext();
--    } else {
--      usePlayerStore.setState({ isPlaying: false, progress: 0 });
--    }
--  };
-+  const {
-+    audioDuration,
-+    audioRef,
-+    currentTime,
-+    handleEnded,
-+    handleLoadedMetadata,
-+    handleSeek,
-+    handleTimeUpdate,
-+  } = usePlayerAudio({
-+    repeat,
-+    shuffle,
-+  });
- 
-   const handleRepeat = () => {
--    setRepeat((r) => (r === "off" ? "all" : r === "all" ? "one" : "off"));
-+    setRepeat(getNextRepeatMode);
-   };
- 
-   const handleMuteToggle = () => {
-     if (volume > 0) {
-       setPrevVolume(volume);
-       setVolume(0);
-     } else {
-       setVolume(prevVolume > 0 ? prevVolume : 0.5);
-     }
-   };
- 
-   const VolumeIcon = volume === 0 ? VolumeX : volume < 0.5 ? Volume1 : Volume2;
--
-   const audioElement = (
-     <audio
-       ref={audioRef}
-       src={track.src}
-       preload="metadata"
-       onTimeUpdate={handleTimeUpdate}
-       onEnded={handleEnded}
-       onLoadedMetadata={handleLoadedMetadata}
-     />
-   );
- 
-   // Mobile fullscreen player
-   if (isMobile) {
-     return (
-       <>
-       {audioElement}
-         {/* Mobile mini player */}
-         <AnimatePresence>
-           {!nowPlayingFullscreen && (
-             <motion.footer
-               dir="ltr"
-               initial={{ y: 100 }}
-               animate={{ y: 0 }}
-               exit={{ y: 100 }}
-               onClick={toggleNowPlayingFullscreen}
-@@ -370,52 +273,52 @@ export function Player() {
-               </div>
- 
-               {/* Track info + like */}
-               <div className="px-2 pb-10 flex items-center justify-between">
-                 <div className="flex-1 min-w-0 pr-4">
-                   <div className="text-base font-bold text-white truncate block">
-                     {track.title || ""}
-                   </div>
-                   <div className="text-sm text-white/70 truncate block">
-                     {track.artist || ""}
-                   </div>
-                 </div>
-                 <div className="ml-3 flex-shrink-0 z-10">
-                   <MobileHeart track={track} />
-                 </div>
-               </div>
- 
-               {/* Progress */}
-               <div className="px-6 pb-4">
-                 <ProgressSlider
-                   value={progress}
-                   onChange={handleSeek}
-                   accent
-                 />
-                 <div className="flex justify-between mt-1.5 text-[11px] text-white/40 tabular-nums">
--                  <span>{fmt(current)}</span>
--                  <span>{fmt(track.duration)}</span>
-+                  <span>{formatPlaybackTime(currentTime)}</span>
-+                  <span>{formatPlaybackTime(track.duration)}</span>
-                 </div>
-               </div>
- 
-               {/* Main Controls */}
-               <div className="px-6 pb-6 flex items-center justify-between">
-                 <motion.button
-                   whileTap={{ scale: 0.85 }}
-                   onClick={() => setShuffle((s) => !s)}
-                   className={`transition-colors ${shuffle ? "text-[#1DB954]" : "text-white/60 hover:text-white"}`}>
-                   <Shuffle className="w-5 h-5" />
-                 </motion.button>
- 
-                 <motion.button
-                   whileTap={{ scale: 0.85 }}
-                   onClick={playPrevious}
-                   className="text-white hover:text-white/80 transition-colors">
-                   <SkipForward className="w-7 h-7" />
-                 </motion.button>
- 
-                 <motion.button
-                   onClick={togglePlay}
-                   whileTap={{ scale: 0.92 }}
-                   whileHover={{ scale: 1.04 }}
-                   className="w-14 h-14 rounded-full bg-white text-black flex items-center justify-center shadow-lg">
-                   <AnimatePresence mode="wait" initial={false}>
-@@ -568,104 +471,104 @@ export function Player() {
-               )}
-             </AnimatePresence>
-           </motion.button>
- 
-           <motion.button
-             whileTap={{ scale: 0.85 }}
-             onClick={playNext}
-             className="text-text-secondary hover:text-text-primary transition-colors">
-             <SkipBack className="w-5 h-5" />
-           </motion.button>
- 
-           <motion.button
-             whileTap={{ scale: 0.85 }}
-             onClick={handleRepeat}
-             className={`transition-colors relative ${repeat !== "off" ? "text-accent-gold" : "text-text-secondary hover:text-text-primary"}`}>
-             <Repeat className="w-4 h-4" />
-             {repeat === "one" && (
-               <span className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 text-[8px] font-bold text-accent-gold">
-                 1
-               </span>
-             )}
-           </motion.button>
-         </div>
- 
-         <div className="flex items-center gap-2 w-full max-w-[500px] text-[10px] text-text-secondary">
--          <span className="w-9 text-right tabular-nums">{fmt(current)}</span>
-+          <span className="w-9 text-right tabular-nums">{formatPlaybackTime(currentTime)}</span>
-           <ProgressSlider value={progress} onChange={handleSeek} />
--          <span className="w-9 tabular-nums">{fmt(audioDuration)}</span>
-+          <span className="w-9 tabular-nums">{formatPlaybackTime(audioDuration)}</span>
-         </div>
-       </div>
- 
-       {/* Right controls */}
-       <div className="flex items-center justify-end gap-3 text-text-secondary">
-         <button className="hover:text-text-primary transition-colors">
-           <Mic2 className="w-4 h-4" />
-         </button>
-         <button
-           onClick={toggleNowPlaying}
-           className={`hover:text-text-primary transition-colors ${nowPlayingOpen ? "text-accent-gold" : ""}`}
-           title="در حال پخش">
-           <ListMusic className="w-4 h-4" />
-         </button>
-         <button
-           onClick={handleMuteToggle}
-           className="hover:text-text-primary transition-colors">
-           <VolumeIcon className="w-4 h-4" />
-         </button>
-         <div className="w-24">
-           <ProgressSlider value={volume} onChange={setVolume} />
-         </div>
-         <button
-           onClick={toggleNowPlayingFullscreen}
-           className={`hover:text-text-primary transition-colors ${nowPlayingFullscreen ? "text-accent-gold" : ""}`}
-           title="تمام صفحه در حال پخش">
-           <Maximize2 className="w-4 h-4" />
-         </button>
-       </div>
-     </footer>
-     </>
-   );
- }
- 
- function ProgressSlider({
-   value,
-   onChange,
-   accent,
- }: {
-   value: number;
-   onChange: (v: number) => void;
-   accent?: boolean;
- }) {
-   const trackRef = useRef<HTMLDivElement>(null);
- 
-   const handleClick = (e: React.MouseEvent) => {
-     const r = e.currentTarget.getBoundingClientRect();
-     const x = (r.right - e.clientX) / r.width;
--    onChange(Math.max(0, Math.min(1, x)));
-+    onChange(clampPlaybackRatio(x));
-   };
- 
-   const handleTouchMove = (e: React.TouchEvent) => {
-     if (!trackRef.current) return;
-     const r = trackRef.current.getBoundingClientRect();
-     const touch = e.touches[0];
-     const x = (r.right - touch.clientX) / r.width;
--    onChange(Math.max(0, Math.min(1, x)));
-+    onChange(clampPlaybackRatio(x));
-   };
- 
-   return (
-     <div
-       ref={trackRef}
-       className="relative h-1 flex-1 bg-bg-elevated rounded-full cursor-pointer group"
-       onClick={handleClick}
-       onTouchMove={handleTouchMove}>
-       <motion.div
-         className={`absolute top-0 right-0 h-full rounded-full transition-colors ${accent ? "bg-white group-hover:bg-[#1DB954]" : "bg-text-primary group-hover:bg-accent-gold"}`}
-         style={{ width: `${value * 100}%` }}
-       />
-       <div
-         className={`absolute top-1/2 -translate-y-1/2 w-3 h-3 rounded-full opacity-0 group-hover:opacity-100 transition-opacity ${accent ? "bg-white" : "bg-text-primary"}`}
-         style={{ right: `calc(${value * 100}% - 6px)` }}
-       />
-     </div>
-   );
- }
-diff --git a/components/music/PlaylistHeader.tsx b/components/music/PlaylistHeader.tsx
-index 5f7c3c41a43c224d1ef03cfdeeff3d0b21b0e1cd..7c61a2eafaecf7dfed69fa24f59998911a50c723 100644
---- a/components/music/PlaylistHeader.tsx
-+++ b/components/music/PlaylistHeader.tsx
-@@ -1,142 +1,141 @@
- "use client";
- 
--import React, { useEffect, useState } from "react";
-+import React, { useState } from "react";
- import Image from "next/image";
- import { Music, Heart, Pencil, Pause, Play, X } from "lucide-react";
- import { TransitionLink } from "@/components/view-transition";
- import AlbumSaveButton from "@/components/music/AlbumSaveButton";
- import { ArrowLeft } from "lucide-react";
- import { usePlayerStore } from "@/store/player-store";
- import { isTrackInQueue } from "@/lib/playback-context";
- import type { Card, Track } from "@/lib/mock-data";
- import type { CustomPlaylist } from "@/store/library-store";
- 
- export default function PlaylistHeader({
-   custom,
-   isLiked,
-   headerCard,
-   cover,
-   title,
-   tracksLength,
-   fileRef,
-   onCoverChange,
-   tracks,
-   onUpdateDetails,
- }: {
-   custom?: CustomPlaylist;
-   isLiked: boolean;
-   headerCard: Card;
-   cover?: string;
-   title: string;
-   tracksLength: number;
-   fileRef: React.RefObject<HTMLInputElement | null>;
-   editing: boolean;
-   setEditing: (v: boolean) => void;
-   onCoverChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
-   onUpdateDetails?: (details: { title: string; description?: string }) => void;
-   tracks: Track[];
- }) {
- 
-   const [detailsOpen, setDetailsOpen] = useState(false);
-   const [draftTitle, setDraftTitle] = useState(title);
-   const [draftDescription, setDraftDescription] = useState(custom?.description ?? "");
- 
-   const playTrack = usePlayerStore((state) => state.playTrack);
-   const currentTrack = usePlayerStore((state) => state.track);
-   const isPlaying = usePlayerStore((state) => state.isPlaying);
-   const togglePlay = usePlayerStore((state) => state.togglePlay);
-   const firstTrack = tracks[0];
-+  const displayCover = cover || headerCard.cover || "/images/moein.jpg";
-   const isCurrentQueue = isTrackInQueue(currentTrack.id, tracks);
- 
--  useEffect(() => {
--    if (!detailsOpen) {
--      setDraftTitle(title);
--      setDraftDescription(custom?.description ?? "");
--    }
--  }, [custom?.description, detailsOpen, title]);
--
-+  const openDetailsEditor = () => {
-+    setDraftTitle(title);
-+    setDraftDescription(custom?.description ?? "");
-+    setDetailsOpen(true);
-+  };
- 
-   const handlePlayClick = () => {
-     if (!firstTrack) return;
- 
-     if (isCurrentQueue) {
-       togglePlay();
-       return;
-     }
- 
-     playTrack(firstTrack, tracks);
-   };
- 
-   const saveDetails = (event: React.FormEvent) => {
-     event.preventDefault();
-     const cleanTitle = draftTitle.trim() || title;
-     onUpdateDetails?.({ title: cleanTitle, description: draftDescription.trim() });
-     setDetailsOpen(false);
-   };
- 
-   return (
-     <>
-       <TransitionLink href="/" className="absolute top-5 left-5 z-50 md:hidden">
-         <div className="flex items-center justify-center w-10 h-10 rounded-full bg-bg-surface/50 text-gray-300 hover:text-white transition-all">
-           <ArrowLeft className="w-4 h-4" />
-         </div>
-       </TransitionLink>
- 
-       <div className="relative px-4 pt-12 pb-6 bg-gradient-to-b from-violet-700/40 to-transparent md:pt-8">
-         <div className="flex flex-col items-center md:flex-row md:items-end gap-6">
-           <div className="relative w-48 h-48 md:w-56 md:h-56 mb-4 md:mb-0">
-             {custom ? (
-               <button
-                 onClick={() => fileRef.current?.click()}
-                 className="relative w-full h-full rounded-lg shadow-2xl overflow-hidden group bg-bg-elevated flex items-center justify-center">
-                 {cover ? (
-                   <Image src={cover} alt={title} fill sizes="224px" className="w-full h-full object-cover" />
-                 ) : (
-                   <Music className="w-16 h-16 text-text-secondary" />
-                 )}
-                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center">
-                   <Pencil className="w-6 h-6 text-white" />
-                   <span className="mt-2 text-sm font-bold text-white">انتخاب تصویر</span>
-                 </div>
-                 <input ref={fileRef} onChange={onCoverChange} type="file" accept="image/*" className="hidden" />
-               </button>
-             ) : isLiked ? (
-               <div className="w-full h-full rounded-lg bg-gradient-to-br from-violet-500 to-fuchsia-700 flex items-center justify-center shadow-2xl">
-                 <Heart className="w-20 h-20 text-white fill-white" />
-               </div>
-             ) : (
--              <Image src={cover} alt={title} fill sizes="224px" className="w-full h-full shadow-2xl object-cover" />
-+              <Image src={displayCover} alt={title} fill sizes="224px" className="w-full h-full shadow-2xl object-cover" />
-             )}
-           </div>
- 
-           <div className="flex-1 w-full text-right md:text-right">
-             <p className="hidden md:block text-xs font-bold uppercase mb-2">{custom ? "پلی‌لیست شخصی" : "پلی‌لیست"}</p>
-             {custom ? (
-               <button
-                 type="button"
--                onClick={() => setDetailsOpen(true)}
-+                onClick={openDetailsEditor}
-                 className="block w-full rounded-md text-right outline-none hover:underline focus-visible:ring-2 focus-visible:ring-white/80"
-                 aria-label="ویرایش اطلاعات پلی‌لیست"
-               >
-                 <h1 className="text-3xl md:text-7xl font-black text-white mb-2 leading-tight">{title}</h1>
-               </button>
-             ) : (
-               <h1 className="text-3xl md:text-7xl font-black text-white mb-2 leading-tight">{title}</h1>
-             )}
-             
-             {custom?.description && <p className="mb-2 max-w-2xl text-sm leading-6 text-white/70">{custom.description}</p>}
-             <p className="text-sm text-white/60 mt-1 md:mt-2">{tracksLength} آهنگ</p>
-           </div>
-         </div>
- 
-         <div className="py-8 flex items-center gap-4 relative">
-           <div className="flex items-center gap-6">
+           <section className="mb-12">
+             <h2 className="text-2xl font-black mb-4">درباره هنرمند</h2>
              <button
-               onClick={handlePlayClick}
-               disabled={!firstTrack}
-               aria-label={isCurrentQueue && isPlaying ? "توقف پخش آهنگ‌های پلی‌لیست" : "پخش آهنگ‌های پلی‌لیست"}
-               className="w-14 h-14 rounded-full bg-accent-gold text-bg-base flex items-center justify-center shadow-[var(--shadow-glow-gold)] transition-transform hover:scale-105 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
-             >
-               {isCurrentQueue && isPlaying ? (
-                 <Pause className="w-6 h-6 fill-current" />
-               ) : (
-diff --git a/components/music/player/playback-utils.ts b/components/music/player/playback-utils.ts
+               onClick={() => setBioOpen(true)}
+-              className="group relative block w-full max-w-[680px] h-[340px] overflow-hidden rounded-lg text-right shadow-[var(--shadow-card)]">
+-              {/* عکس به صورت یک لایه جداگانه با کنترل کامل */}
++              className="group relative block w-full max-w-[680px] h-[340px] overflow-hidden rounded-lg text-right shadow-[var(--shadow-card)]"
++            >
+               <Image
+                 src={artist.cover}
+                 className="absolute inset-0 w-full h-full object-cover object-center"
+                 alt={artist.title}
+                 fill
+                 sizes="(max-width: 768px) 100vw, 680px"
+               />
+ 
+-              {/* لایه گرادینت روی عکس */}
+               <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/20 to-black/90" />
+ 
+-              {/* محتوا */}
+               <div className="relative z-10 h-full flex flex-col justify-end p-6">
+                 <div className="text-sm font-bold mb-2 text-white">
+                   ۲٬۴۵۸٬۹۲۱ شنونده ماهانه
+                 </div>
+                 <p className="text-sm leading-7 text-white/90 max-w-[560px] line-clamp-3">
+                   {artistBio}
+                 </p>
+               </div>
+             </button>
+           </section>
+           <SectionRow
+             title="طرفداران همچنین گوش می‌دهند"
+             isShowAll={true}
+             showAllHref={`/collection/related-artists?artist=${artist.id}`}
+-            cards={(homeData?.artists ?? []).filter((a) => a.id !== id)}
++            cards={(homeData?.artists ?? []).filter((artistItem) => artistItem.id !== id)}
+           />
+           <SectionRow
+             title="بر اساس این هنرمند"
+             isShowAll={true}
+             showAllHref={`/collection/artist-playlists?artist=${artist.id}`}
+             cards={homeData?.playlists ?? []}
+           />
+         </div>
+       </motion.div>
+ 
+       <ArtistBioModal open={bioOpen} onClose={() => setBioOpen(false)} artist={artist} bio={artistBio} />
+     </AppShell>
+   );
+ }
+diff --git a/app/playlist/[id]/page.tsx b/app/playlist/[id]/page.tsx
+index 1a4a0a13fda2eb8a8b47317426aea130c5359477..8ce9b9c1feda819f8a70592d2fab0173c82d7d0c 100644
+--- a/app/playlist/[id]/page.tsx
++++ b/app/playlist/[id]/page.tsx
+@@ -1,291 +1,133 @@
+ "use client";
+ 
+ import { motion } from "framer-motion";
+ import { Heart, Clock, ArrowLeft } from "lucide-react";
+-import { useRouter } from "next/navigation";
+-import React, { useMemo, useRef, useState, use } from "react";
+-import { AppShell } from "@/components/music/AppShell";
+-import { usePlaylist, useArtist, useCurrentTrack, useHomeData } from "@/lib/hooks";
+-import { usePlayerStore } from "@/store/player-store";
+-import { useLibraryStore, type CustomTrack } from "@/store/library-store";
++import { use } from "react";
+ import Link from "next/link";
+-// LikeButton used inside track rows; imported by row component
++import { AppShell } from "@/components/music/AppShell";
+ import PlaylistHeader from "@/components/music/PlaylistHeader";
+ import PlaylistTrackRow from "@/components/music/PlaylistTrackRow";
+ import AddSongsPanel from "@/components/music/AddSongsPanel";
+-// tooltip primitives removed from this page (used in shared UI components)
+-import { normalizePlayableQueue, normalizePlayableTrack, type PlayableTrackInput } from "@/lib/music-catalog";
+-import type { Card } from "@/lib/mock-data";
+-import { buildCardPlaybackQueue } from "@/lib/playback-context";
+-
+-// AlbumSaveButton and header/rows extracted to components in components/music/
+-
+-// نمونه دیتا محلی برای زمانی که API داده‌ای برنگرداند
+-
+-const sampleTracks: PlayableTrackInput[] = Array.from({ length: 10 }).map((_, i) => ({
+-  id: `t${i}`,
+-  title: [
+-    "چتر خیس",
+-    "زخم زبون",
+-    "اتفاق",
+-    "دل‌من‌ای",
+-    "بی‌من‌مرو",
+-    "سرنوشت",
+-    "روزنه",
+-    "حیران",
+-    "ماه نو",
+-    "افسانه",
+-  ][i],
+-  artist: [
+-    "محسن چاوشی",
+-    "همایون شجریان",
+-    "سیروان خسروی",
+-    "محسن یگانه",
+-    "بنیامین",
+-  ][i % 5],
+-  album: "آلبوم برگزیده",
+-  duration: `${3 + (i % 3)}:${String((10 + i * 7) % 60).padStart(2, "0")}`,
+-}));
++import { formatTrackDuration, parseTrackDurationLabel, usePlaylistPageData } from "@/hooks/usePlaylistPageData";
+ 
+ interface Props {
+   params: Promise<{ id: string }> | { id: string };
+ }
+ 
+ export default function PlaylistPage({ params }: Props) {
+-  const { id } = use(params as Promise<{ id: string }>); // unwrap params safely
+-
+-  const router = useRouter();
+-
+-  const handleBack = async () => {
+-    const viewTransitionDocument = document as Document & {
+-      startViewTransition?: (callback: () => Promise<void>) => { finished: Promise<void> };
+-    };
+-
+-    if (viewTransitionDocument.startViewTransition) {
+-      try {
+-        await viewTransitionDocument.startViewTransition(() => {
+-          router.back();
+-          return Promise.resolve();
+-        });
+-      } catch {
+-        router.back();
+-      }
+-    } else {
+-      router.back();
+-    }
+-  };
+-
++  const { id } = use(params as Promise<{ id: string }>);
+   const {
+-    customPlaylists,
+-    updatePlaylistCover,
++    custom,
++    isLiked,
++    fileRef,
++    editing,
++    setEditing,
++    showSearch,
++    setShowSearch,
++    query,
++    setQuery,
++    title,
++    cover,
++    tracks,
++    headerCard,
++    handleBack,
++    handleCover,
+     addTrackToPlaylist,
+     updatePlaylistDetails,
+-  } = useLibraryStore();
+-  const likedTracks = useLibraryStore((s) => s.likedTracks);
+-
+-  const custom = customPlaylists.find((p) => p.id === id);
+-  const { data: playlistData } = usePlaylist(id);
+-  const card = custom ? undefined : (playlistData?.card ?? undefined);
+-  const isLiked = id === "liked";
+-
+-  const fileRef = useRef<HTMLInputElement>(null);
+-  const [editing, setEditing] = useState(false);
+-  const { data: homeData } = useHomeData();
+-  const [showSearch, setShowSearch] = useState(
+-    (custom?.tracks.length ?? 0) === 0 || (isLiked && likedTracks.length === 0),
+-  );
+-  const [query, setQuery] = useState("");
+-
+-  const title = custom
+-    ? custom.title
+-    : isLiked
+-      ? "آهنگ‌های لایک شده"
+-      : (card?.title ?? "پلی‌لیست");
+-  const cover = custom?.cover ?? card?.cover;
+-  const tracks = custom
+-    ? custom.tracks
+-    : isLiked
+-    ? likedTracks
+-    : (playlistData?.tracks ?? sampleTracks);
+-
+-  // headerCard represents the item shown in the header (playlist/album)
+-  const headerCard: Card = card ?? {
+-    id,
+-    title,
+-    subtitle: "",
+-    cover: cover ?? "",
+-    type: isLiked ? "playlist" : "album",
+-  };
+-
+-  const handleCover = (e: React.ChangeEvent<HTMLInputElement>) => {
+-    const file = e.target.files?.[0];
+-    if (!file || !custom) return;
+-    const reader = new FileReader();
+-    reader.onload = () => {
+-      if (typeof reader.result === "string")
+-        updatePlaylistCover(custom.id, reader.result);
+-    };
+-    reader.readAsDataURL(file);
+-  };
+-
+-  const allAvailableTracks = useMemo(() => {
+-    const cards = [
+-      ...(homeData?.featured ?? []),
+-      ...(homeData?.radio ?? []),
+-      ...(homeData?.albums ?? []),
+-      ...(homeData?.artists ?? []),
+-      ...(homeData?.playlists ?? []),
+-    ];
+-    const unique = new Map<string, CustomTrack>();
+-
+-    [...cards.flatMap((item) => buildCardPlaybackQueue(item)), ...sampleTracks.map((item) => normalizePlayableTrack(item))].forEach((track) => {
+-      if (!unique.has(track.id)) {
+-        unique.set(track.id, {
+-          id: track.id,
+-          title: track.title,
+-          artist: track.artist,
+-          album: track.album ?? "",
+-          duration: String(track.duration),
+-          cover: track.cover,
+-          src: track.src,
+-        });
+-      }
+-    });
+-
+-    return Array.from(unique.values());
+-  }, [homeData]);
+-
+-  const filteredSuggest = allAvailableTracks.filter(
+-    (t) =>
+-      !query.trim() ||
+-      (t.title ?? "").toLowerCase().includes(query.trim().toLowerCase()) ||
+-      (t.artist ?? "").toLowerCase().includes(query.trim().toLowerCase()) ||
+-      (t.album ?? "").toLowerCase().includes(query.trim().toLowerCase()),
+-  );
+-
+-  const formatDuration = (d: number | string) => {
+-    if (typeof d === "number")
+-      return `${Math.floor(d / 60)}:${String(d % 60).padStart(2, "0")}`;
+-    return d;
+-  };
+-
+-  const parseDuration = (d: number | string) => {
+-    if (typeof d === "number") return d;
+-    const parts = String(d)
+-      .split(":")
+-      .map((p) => parseInt(p, 10));
+-    if (
+-      parts.length === 2 &&
+-      !Number.isNaN(parts[0]) &&
+-      !Number.isNaN(parts[1])
+-    ) {
+-      return parts[0] * 60 + parts[1];
+-    }
+-    return 0;
+-  };
+-
+-  const { data: artistData } = useArtist(id);
+-  const artist = artistData?.artist ?? undefined;
+-  useCurrentTrack();
+-  const playTrack = usePlayerStore((s) => s.playTrack);
+-  const currentTrack = usePlayerStore((s) => s.track);
+-  const isPlaying = usePlayerStore((s) => s.isPlaying);
+-  const playableTracks = normalizePlayableQueue(tracks as Array<PlayableTrackInput | CustomTrack>, {
+-    cover: cover ?? artist?.cover ?? "/images/moein.jpg",
+-    artist: artist?.title ?? "",
+-  });
+-  
++    artist,
++    playTrack,
++    currentTrack,
++    isPlaying,
++    playableTracks,
++    filteredSuggest,
++  } = usePlaylistPageData(id);
+ 
+   return (
+     <AppShell>
+       <motion.div
+         initial={{ opacity: 0, y: 20 }}
+         animate={{ opacity: 1, y: 0 }}
+         className="-mx-6 md:-mx-10 -mt-4 px-2">
+-        {/* back button */}
+         <button onClick={handleBack} className="absolute top-5 left-5 z-50 md:hidden">
+           <div className="flex items-center justify-center w-10 h-10 rounded-full bg-bg-surface/50 text-gray-300 hover:text-white transition-all">
+             <ArrowLeft className="w-4 h-4" />
+           </div>
+         </button>
+         <PlaylistHeader
+           custom={custom}
+           isLiked={isLiked}
+           headerCard={headerCard}
+           cover={cover}
+           title={title}
+           tracksLength={tracks.length}
+           fileRef={fileRef}
+           editing={editing}
+           setEditing={setEditing}
+           onCoverChange={handleCover}
+           onUpdateDetails={(details) => custom && updatePlaylistDetails(custom.id, details)}
+           tracks={playableTracks}
+         />
+ 
+-        {/* Track list */}
+         <div className="px-6">
+           {tracks.length > 0 && (
+             <div className="hidden md:grid grid-cols-[24px_1fr_1fr_60px] gap-4 px-4 py-2 mb-4 border-b border-border-default text-xs text-text-secondary uppercase">
+               <span>#</span>
+               <span>عنوان</span>
+               <span>آلبوم</span>
+               <Clock className="w-4 h-4 mx-auto" />
+             </div>
+           )}
+ 
+-          {playableTracks.map((t, i) => (
++          {playableTracks.map((track, index) => (
+             <PlaylistTrackRow
+-              key={t.id}
+-              t={t}
+-              i={i}
++              key={track.id}
++              t={track}
++              i={index}
+               artist={artist}
+               cover={cover}
+               setTrack={playTrack}
+               queue={playableTracks}
+               isPlaying={isPlaying}
+               currentTrack={currentTrack}
+-              formatDuration={formatDuration}
+-              parseDuration={parseDuration}
++              formatDuration={formatTrackDuration}
++              parseDuration={parseTrackDurationLabel}
+             />
+           ))}
+ 
+-          {/* Empty state for liked playlist */}
+           {isLiked && tracks.length === 0 && (
+             <div className="py-24 text-center text-white/90">
+               <div className="max-w-2xl mx-auto">
+                 <div className="w-40 h-40 mx-auto rounded-lg bg-gradient-to-br from-violet-600 to-fuchsia-500 flex items-center justify-center shadow-2xl mb-6">
+                   <Heart className="w-16 h-16 text-white" />
+                 </div>
+                 <h2 className="text-4xl font-black mb-3">آهنگ‌های لایک‌شده</h2>
+                 <p className="text-lg text-white/70 mb-6">آهنگ‌هایی که دوست دارید و علامت قلب می‌زنید اینجا نمایش داده می‌شوند.</p>
+                 <p className="text-sm text-white/60 mb-6">برای ذخیره آهنگ، روی آیکون قلب کنار هر آهنگ کلیک کنید.</p>
+                 <div className="flex items-center justify-center">
+                   <Link href="/search" className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white text-black font-semibold shadow-sm">
+                     یافتن آهنگ
+                   </Link>
+                 </div>
+               </div>
+             </div>
+           )}
+-          {/* Empty state for custom playlist */}
+           {custom && tracks.length === 0 && !showSearch && (
+             <div className="py-16 text-center text-text-secondary">
+               این پلی‌لیست هنوز خالی است. روی دکمه افزودن آهنگ بزن.
+             </div>
+           )}
+ 
+           <AddSongsPanel
+             custom={custom}
+             showSearch={showSearch}
+             setShowSearch={setShowSearch}
+             query={query}
+             setQuery={setQuery}
+             filteredSuggest={filteredSuggest}
+             addTrackToPlaylist={addTrackToPlaylist}
+           />
+         </div>
+       </motion.div>
+     </AppShell>
+   );
+ }
+diff --git a/hooks/useArtistPageData.ts b/hooks/useArtistPageData.ts
 new file mode 100644
-index 0000000000000000000000000000000000000000..d313fcbe9360ee3f33cd7bfec478747c54f2240c
+index 0000000000000000000000000000000000000000..93c1018294ee6906768fb4f07999852a60827d86
 --- /dev/null
-+++ b/components/music/player/playback-utils.ts
-@@ -0,0 +1,19 @@
-+export type RepeatMode = "off" | "all" | "one";
-+
-+export function formatPlaybackTime(seconds: number): string {
-+  const safeSeconds = Number.isFinite(seconds) ? Math.max(0, seconds) : 0;
-+  const minutes = Math.floor(safeSeconds / 60);
-+  const remainingSeconds = Math.floor(safeSeconds % 60);
-+
-+  return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
-+}
-+
-+export function getNextRepeatMode(repeat: RepeatMode): RepeatMode {
-+  if (repeat === "off") return "all";
-+  if (repeat === "all") return "one";
-+  return "off";
-+}
-+
-+export function clampPlaybackRatio(value: number): number {
-+  return Math.max(0, Math.min(1, Number.isFinite(value) ? value : 0));
-+}
-diff --git a/components/music/player/use-player-audio.ts b/components/music/player/use-player-audio.ts
-new file mode 100644
-index 0000000000000000000000000000000000000000..9a0de3412764be5868019b29176bfac9635c6441
---- /dev/null
-+++ b/components/music/player/use-player-audio.ts
-@@ -0,0 +1,137 @@
++++ b/hooks/useArtistPageData.ts
+@@ -0,0 +1,67 @@
 +"use client";
 +
-+import { useEffect, useRef, useState } from "react";
++import { useMemo, useState } from "react";
++import { useParams } from "next/navigation";
++import { useArtist, useHomeData } from "@/lib/hooks";
++import { buildArtistPlaybackQueue } from "@/lib/playback-context";
 +import { usePlayerStore } from "@/store/player-store";
-+import type { RepeatMode } from "./playback-utils";
 +
-+type LoadedAudio = {
-+  src?: string;
-+  duration: number;
++const DEFAULT_ARTIST = {
++  id: "",
++  title: "هنرمند",
++  subtitle: "",
++  cover: "/images/moein.jpg",
++  type: "artist" as const,
 +};
 +
-+type UsePlayerAudioArgs = {
-+  repeat: RepeatMode;
-+  shuffle: boolean;
-+};
-+
-+export function usePlayerAudio({ repeat, shuffle }: UsePlayerAudioArgs) {
-+  const { track, isPlaying, progress, setProgress, volume, playNext } = usePlayerStore();
-+  const audioRef = useRef<HTMLAudioElement>(null);
-+  const restoredSrcRef = useRef<string | undefined>(undefined);
-+  const resumeProgressRef = useRef(progress);
-+  const [loadedAudio, setLoadedAudio] = useState<LoadedAudio>({
-+    duration: track.duration,
-+  });
-+
-+  useEffect(() => {
-+    resumeProgressRef.current = usePlayerStore.getState().progress;
-+    restoredSrcRef.current = undefined;
-+  }, [track.src]);
-+
-+  useEffect(() => {
-+    const audio = audioRef.current;
-+    if (!audio) return;
-+
-+    audio.volume = volume;
-+  }, [volume]);
-+
-+  useEffect(() => {
-+    const audio = audioRef.current;
-+    if (!audio) return;
-+
-+    if (isPlaying) {
-+      void audio.play().catch(() => {
-+        usePlayerStore.setState({ isPlaying: false });
-+      });
-+    } else {
-+      audio.pause();
-+    }
-+  }, [isPlaying, track.src]);
-+
-+  const audioDuration = loadedAudio.src === track.src ? loadedAudio.duration : track.duration;
-+  const currentTime = progress * audioDuration;
-+
-+  const handleSeek = (value: number) => {
-+    setProgress(value);
-+
-+    const audio = audioRef.current;
-+    if (!audio || !Number.isFinite(audio.duration)) return;
-+
-+    audio.currentTime = value * audio.duration;
-+  };
-+
-+  const restoreAudioPosition = () => {
-+    const audio = audioRef.current;
-+    if (!audio || !Number.isFinite(audio.duration) || audio.duration === 0) return;
-+
-+    if (restoredSrcRef.current === track.src) return;
-+    restoredSrcRef.current = track.src;
-+
-+    const resumeProgress = resumeProgressRef.current;
-+    if (resumeProgress <= 0) return;
-+
-+    const targetTime = Math.min(
-+      resumeProgress * audio.duration,
-+      Math.max(audio.duration - 0.25, 0),
-+    );
-+
-+    if (targetTime > 0 && Math.abs(audio.currentTime - targetTime) > 0.5) {
-+      audio.currentTime = targetTime;
-+    }
-+  };
-+
-+  const handleLoadedMetadata = () => {
-+    const audio = audioRef.current;
-+    if (audio && Number.isFinite(audio.duration) && audio.duration > 0) {
-+      setLoadedAudio({ src: track.src, duration: audio.duration });
-+    }
-+
-+    restoreAudioPosition();
-+
-+    if (isPlaying) {
-+      void audioRef.current?.play().catch(() => {
-+        usePlayerStore.setState({ isPlaying: false });
-+      });
-+    }
-+  };
-+
-+  const handleTimeUpdate = () => {
-+    const audio = audioRef.current;
-+    if (!audio || !Number.isFinite(audio.duration) || audio.duration === 0) return;
-+
-+    setProgress(audio.currentTime / audio.duration);
-+  };
-+
-+  const handleEnded = () => {
-+    if (repeat === "one") {
-+      handleSeek(0);
-+      void audioRef.current?.play();
-+      return;
-+    }
-+
-+    if (shuffle) {
-+      const { queue, playTrack } = usePlayerStore.getState();
-+      const next = queue[Math.floor(Math.random() * queue.length)];
-+      if (next) playTrack(next, queue);
-+      return;
-+    }
-+
-+    const { currentIndex, queue } = usePlayerStore.getState();
-+    if (repeat === "all" || currentIndex < queue.length - 1) {
-+      playNext();
-+      return;
-+    }
-+
-+    usePlayerStore.setState({ isPlaying: false, progress: 0 });
-+  };
++function buildArtistTint(artistId: string) {
++  const seed = artistId.split("").reduce((total, char) => total + char.charCodeAt(0), 0);
++  const hue = (seed * 47) % 360;
 +
 +  return {
-+    audioDuration,
-+    audioRef,
-+    currentTime,
-+    handleEnded,
-+    handleLoadedMetadata,
-+    handleSeek,
-+    handleTimeUpdate,
-+  };
-+}
-diff --git a/hooks/use-mobile.tsx b/hooks/use-mobile.tsx
-index 502fd323934501eab408a396a9ae4a07c0ae3560..cc720af57501bf6b57aa00ab6497d8ea1b08a71d 100644
---- a/hooks/use-mobile.tsx
-+++ b/hooks/use-mobile.tsx
-@@ -1,19 +1,35 @@
--import * as React from "react";
-+"use client";
- 
--const MOBILE_BREAKPOINT = 768;
-+import { useSyncExternalStore } from "react";
-+
-+export const MOBILE_BREAKPOINT = 768;
-+
-+const MOBILE_MEDIA_QUERY = `(max-width: ${MOBILE_BREAKPOINT - 1}px)`;
-+
-+function subscribeToViewportChanges(onStoreChange: () => void) {
-+  const mediaQuery = window.matchMedia(MOBILE_MEDIA_QUERY);
-+
-+  mediaQuery.addEventListener("change", onStoreChange);
-+  window.addEventListener("resize", onStoreChange);
-+
-+  return () => {
-+    mediaQuery.removeEventListener("change", onStoreChange);
-+    window.removeEventListener("resize", onStoreChange);
++    tint: `hsl(${hue}, 42%, 22%)`,
++    tintSoft: `hsl(${hue}, 38%, 14%)`,
 +  };
 +}
 +
-+function getClientSnapshot() {
-+  return window.innerWidth < MOBILE_BREAKPOINT;
-+}
++export function useArtistPageData() {
++  const params = useParams();
++  const id = typeof params?.id === "string" ? params.id : "";
++  const [bioOpen, setBioOpen] = useState(false);
++  const [popularExpanded, setPopularExpanded] = useState(false);
 +
-+function getServerSnapshot() {
-+  return false;
-+}
- 
- export function useIsMobile() {
--  const [isMobile, setIsMobile] = React.useState<boolean | undefined>(undefined);
--
--  React.useEffect(() => {
--    const mql = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`);
--    const onChange = () => {
--      setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
--    };
--    mql.addEventListener("change", onChange);
--    setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
--    return () => mql.removeEventListener("change", onChange);
--  }, []);
--
--  return !!isMobile;
-+  return useSyncExternalStore(
-+    subscribeToViewportChanges,
-+    getClientSnapshot,
-+    getServerSnapshot,
++  const { data: artistData } = useArtist(id);
++  const { data: homeData } = useHomeData();
++  const playTrack = usePlayerStore((state) => state.playTrack);
++
++  const artist = artistData?.artist ?? homeData?.artists?.[0] ?? DEFAULT_ARTIST;
++
++  const playablePopularTracks = useMemo(() => buildArtistPlaybackQueue(artist), [artist]);
++  const visiblePopularTracks = useMemo(
++    () => (popularExpanded ? playablePopularTracks : playablePopularTracks.slice(0, 5)),
++    [playablePopularTracks, popularExpanded],
 +  );
- }
-diff --git a/hooks/useAuth.ts b/hooks/useAuth.ts
-index e7398176a2510f9d2692e2d039743cf2e255226f..86234b7bcdba557ffe70d81a63c4ccfae3aec521 100644
---- a/hooks/useAuth.ts
-+++ b/hooks/useAuth.ts
-@@ -1,55 +1,100 @@
- "use client";
- 
--import { useCallback, useEffect, useState } from "react";
-+import { useCallback, useMemo, useSyncExternalStore } from "react";
- import { useRouter } from "next/navigation";
- 
- const AUTH_KEY = "lm_auth_user";
-+const AUTH_PHONE_KEY = "auth_phone";
-+const AUTH_STORAGE_EVENT = "lm-auth-storage-change";
- 
- export interface AuthUser {
-   phone: string;
-   name?: string;
-   loggedInAt: number; // timestamp
- }
- 
--export function useAuth() {
--  const router = useRouter();
--  const [user, setUser] = useState<AuthUser | null>(null);
--  const [loading, setLoading] = useState(true);
-+function notifyAuthSubscribers() {
-+  window.dispatchEvent(new Event(AUTH_STORAGE_EVENT));
-+}
- 
--  useEffect(() => {
--    try {
--      const raw = localStorage.getItem(AUTH_KEY);
--      if (raw) setUser(JSON.parse(raw));
--    } catch {
--      // ignore
--    } finally {
--      setLoading(false);
-+function subscribeToAuthChanges(onStoreChange: () => void) {
-+  const handleStorageChange = (event: StorageEvent) => {
-+    if (event.key === AUTH_KEY || event.key === null) {
-+      onStoreChange();
-     }
--  }, []);
-+  };
++  const artistBio = useMemo(
++    () => `${artist.title} از چهره‌های شناخته‌شده موسیقی فارسی است...`,
++    [artist.title],
++  );
++  const background = useMemo(() => {
++    const { tint, tintSoft } = buildArtistTint(artist.id);
++    return `linear-gradient(180deg, ${tint} 0%, ${tintSoft} 360px, var(--bg-surface) 720px)`;
++  }, [artist.id]);
 +
-+  window.addEventListener(AUTH_STORAGE_EVENT, onStoreChange);
-+  window.addEventListener("storage", handleStorageChange);
-+
-+  return () => {
-+    window.removeEventListener(AUTH_STORAGE_EVENT, onStoreChange);
-+    window.removeEventListener("storage", handleStorageChange);
++  return {
++    id,
++    artist,
++    homeData,
++    bioOpen,
++    setBioOpen,
++    popularExpanded,
++    setPopularExpanded,
++    playTrack,
++    playablePopularTracks,
++    visiblePopularTracks,
++    artistBio,
++    background,
 +  };
 +}
+diff --git a/hooks/usePlaylistPageData.ts b/hooks/usePlaylistPageData.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..00353ab3901ec60d32ab65f655f6d19ca71ea39f
+--- /dev/null
++++ b/hooks/usePlaylistPageData.ts
+@@ -0,0 +1,209 @@
++"use client";
 +
-+function parseAuthUser(raw: string | null): AuthUser | null {
-+  if (!raw) return null;
++import { useCallback, useMemo, useRef, useState } from "react";
++import { useRouter } from "next/navigation";
++import { useArtist, useCurrentTrack, useHomeData, usePlaylist } from "@/lib/hooks";
++import { normalizePlayableQueue, normalizePlayableTrack, type PlayableTrackInput } from "@/lib/music-catalog";
++import type { Card } from "@/lib/mock-data";
++import { buildCardPlaybackQueue } from "@/lib/playback-context";
++import { useLibraryStore, type CustomTrack } from "@/store/library-store";
++import { usePlayerStore } from "@/store/player-store";
 +
-+  try {
-+    const parsed = JSON.parse(raw) as Partial<AuthUser>;
-+    if (typeof parsed.phone !== "string" || typeof parsed.loggedInAt !== "number") {
-+      return null;
++const SAMPLE_TRACKS: PlayableTrackInput[] = Array.from({ length: 10 }).map((_, index) => ({
++  id: `t${index}`,
++  title: [
++    "چتر خیس",
++    "زخم زبون",
++    "اتفاق",
++    "دل‌من‌ای",
++    "بی‌من‌مرو",
++    "سرنوشت",
++    "روزنه",
++    "حیران",
++    "ماه نو",
++    "افسانه",
++  ][index],
++  artist: [
++    "محسن چاوشی",
++    "همایون شجریان",
++    "سیروان خسروی",
++    "محسن یگانه",
++    "بنیامین",
++  ][index % 5],
++  album: "آلبوم برگزیده",
++  duration: `${3 + (index % 3)}:${String((10 + index * 7) % 60).padStart(2, "0")}`,
++}));
++
++export function formatTrackDuration(duration: number | string) {
++  if (typeof duration === "number") {
++    return `${Math.floor(duration / 60)}:${String(duration % 60).padStart(2, "0")}`;
++  }
++
++  return duration;
++}
++
++export function parseTrackDurationLabel(duration: number | string) {
++  if (typeof duration === "number") return duration;
++
++  const parts = String(duration)
++    .split(":")
++    .map((part) => Number.parseInt(part, 10));
++
++  if (parts.length === 2 && !Number.isNaN(parts[0]) && !Number.isNaN(parts[1])) {
++    return parts[0] * 60 + parts[1];
++  }
++
++  return 0;
++}
++
++function filterSuggestedTracks(tracks: CustomTrack[], query: string) {
++  const normalizedQuery = query.trim().toLowerCase();
++
++  if (!normalizedQuery) return tracks;
++
++  return tracks.filter(
++    (track) =>
++      (track.title ?? "").toLowerCase().includes(normalizedQuery) ||
++      (track.artist ?? "").toLowerCase().includes(normalizedQuery) ||
++      (track.album ?? "").toLowerCase().includes(normalizedQuery),
++  );
++}
++
++export function usePlaylistPageData(id: string) {
++  const router = useRouter();
++  const fileRef = useRef<HTMLInputElement>(null);
++  const [editing, setEditing] = useState(false);
++  const [query, setQuery] = useState("");
++
++  const { customPlaylists, updatePlaylistCover, addTrackToPlaylist, updatePlaylistDetails } = useLibraryStore();
++  const likedTracks = useLibraryStore((state) => state.likedTracks);
++  const playTrack = usePlayerStore((state) => state.playTrack);
++  const currentTrack = usePlayerStore((state) => state.track);
++  const isPlaying = usePlayerStore((state) => state.isPlaying);
++
++  const custom = useMemo(() => customPlaylists.find((playlist) => playlist.id === id), [customPlaylists, id]);
++  const isLiked = id === "liked";
++  const [showSearch, setShowSearch] = useState(
++    (custom?.tracks.length ?? 0) === 0 || (isLiked && likedTracks.length === 0),
++  );
++
++  const { data: playlistData } = usePlaylist(id);
++  const { data: homeData } = useHomeData();
++  const { data: artistData } = useArtist(id);
++  useCurrentTrack();
++
++  const card = custom ? undefined : (playlistData?.card ?? undefined);
++  const artist = artistData?.artist ?? undefined;
++  const title = custom ? custom.title : isLiked ? "آهنگ‌های لایک شده" : (card?.title ?? "پلی‌لیست");
++  const cover = custom?.cover ?? card?.cover;
++  const tracks = custom ? custom.tracks : isLiked ? likedTracks : (playlistData?.tracks ?? SAMPLE_TRACKS);
++  const headerCard: Card = card ?? {
++    id,
++    title,
++    subtitle: "",
++    cover: cover ?? "",
++    type: isLiked ? "playlist" : "album",
++  };
++
++  const handleBack = useCallback(async () => {
++    const viewTransitionDocument = document as Document & {
++      startViewTransition?: (callback: () => Promise<void>) => { finished: Promise<void> };
++    };
++
++    if (viewTransitionDocument.startViewTransition) {
++      try {
++        await viewTransitionDocument.startViewTransition(() => {
++          router.back();
++          return Promise.resolve();
++        });
++      } catch {
++        router.back();
++      }
++    } else {
++      router.back();
++    }
++  }, [router]);
++
++  const handleCover = useCallback(
++    (event: React.ChangeEvent<HTMLInputElement>) => {
++      const file = event.target.files?.[0];
++      if (!file || !custom) return;
++
++      const reader = new FileReader();
++      reader.onload = () => {
++        if (typeof reader.result === "string") updatePlaylistCover(custom.id, reader.result);
++      };
++      reader.readAsDataURL(file);
++    },
++    [custom, updatePlaylistCover],
++  );
++
++  const allAvailableTracks = useMemo(() => {
++    const cards = [
++      ...(homeData?.featured ?? []),
++      ...(homeData?.radio ?? []),
++      ...(homeData?.albums ?? []),
++      ...(homeData?.artists ?? []),
++      ...(homeData?.playlists ?? []),
++    ];
++    const uniqueTracks = new Map<string, CustomTrack>();
++
++    for (const track of [
++      ...cards.flatMap((item) => buildCardPlaybackQueue(item)),
++      ...SAMPLE_TRACKS.map((item) => normalizePlayableTrack(item)),
++    ]) {
++      if (!uniqueTracks.has(track.id)) {
++        uniqueTracks.set(track.id, {
++          id: track.id,
++          title: track.title,
++          artist: track.artist,
++          album: track.album ?? "",
++          duration: String(track.duration),
++          cover: track.cover,
++          src: track.src,
++        });
++      }
 +    }
 +
-+    return {
-+      phone: parsed.phone,
-+      name: typeof parsed.name === "string" ? parsed.name : undefined,
-+      loggedInAt: parsed.loggedInAt,
-+    };
-+  } catch {
-+    return null;
-+  }
-+}
++    return Array.from(uniqueTracks.values());
++  }, [homeData]);
 +
-+function getAuthSnapshot() {
-+  return localStorage.getItem(AUTH_KEY);
-+}
-+
-+function getServerAuthSnapshot() {
-+  return null;
-+}
-+
-+export function useAuth() {
-+  const router = useRouter();
-+  const rawUser = useSyncExternalStore(
-+    subscribeToAuthChanges,
-+    getAuthSnapshot,
-+    getServerAuthSnapshot,
++  const filteredSuggest = useMemo(
++    () => filterSuggestedTracks(allAvailableTracks, query),
++    [allAvailableTracks, query],
 +  );
-+  const user = useMemo(() => parseAuthUser(rawUser), [rawUser]);
- 
-   const logout = useCallback(() => {
-     try {
-       localStorage.removeItem(AUTH_KEY);
--      sessionStorage.removeItem("auth_phone");
-+      sessionStorage.removeItem(AUTH_PHONE_KEY);
-+      notifyAuthSubscribers();
-     } catch {
-       // ignore
-     }
--    setUser(null);
++  const playableTracks = useMemo(
++    () =>
++      normalizePlayableQueue(tracks as Array<PlayableTrackInput | CustomTrack>, {
++        cover: cover ?? artist?.cover ?? "/images/moein.jpg",
++        artist: artist?.title ?? "",
++      }),
++    [artist?.cover, artist?.title, cover, tracks],
++  );
 +
-     router.replace("/auth/phone");
-   }, [router]);
- 
-   /** Call this after OTP is verified to persist the session */
-   const saveSession = useCallback((phone: string, name?: string) => {
-     const authUser: AuthUser = { phone, name, loggedInAt: Date.now() };
-+
-     try {
-       localStorage.setItem(AUTH_KEY, JSON.stringify(authUser));
-+      notifyAuthSubscribers();
-     } catch {
-       // ignore
-     }
--    setUser(authUser);
-   }, []);
- 
--  const isLoggedIn = !loading && user !== null;
-+  const loading = false;
-+  const isLoggedIn = user !== null;
- 
-   return { user, loading, isLoggedIn, logout, saveSession };
- }
++  return {
++    custom,
++    isLiked,
++    fileRef,
++    editing,
++    setEditing,
++    showSearch,
++    setShowSearch,
++    query,
++    setQuery,
++    title,
++    cover,
++    tracks,
++    headerCard,
++    handleBack,
++    handleCover,
++    addTrackToPlaylist,
++    updatePlaylistDetails,
++    artist,
++    playTrack,
++    currentTrack,
++    isPlaying,
++    playableTracks,
++    filteredSuggest,
++  };
++}

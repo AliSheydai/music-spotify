@@ -1,48 +1,29 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useState } from "react";
-import { useParams } from "next/navigation";
 import Image from "next/image";
 import { AppShell } from "@/components/music/AppShell";
 import { SectionRow } from "@/components/music/SectionRow";
-import { useArtist, useHomeData } from "@/lib/hooks";
-import { usePlayerStore } from "@/store/player-store";
 import ArtistHero from "@/components/music/ArtistHero";
 import ArtistTrackRow from "@/components/music/ArtistTrackRow";
 import ArtistBioModal from "@/components/music/ArtistBioModal";
-import { buildArtistPlaybackQueue } from "@/lib/playback-context";  
-// در Next.js پارامترها به این صورت دریافت می‌شوند
+import { useArtistPageData } from "@/hooks/useArtistPageData";
 
 export default function ArtistPage() {
-  const params = useParams();
-  const id = typeof params?.id === "string" ? params.id : "";
-
-  // منطق دریافت هنرمند و محتوای مرتبط از TanStack Query
-  const { data: artistData } = useArtist(id);
-  const { data: homeData } = useHomeData();
-  const artist = artistData?.artist ??
-    homeData?.artists?.[0] ?? {
-      id: "",
-      title: "هنرمند",
-      subtitle: "",
-      cover: "/images/moein.jpg",
-      type: "artist",
-    };
-  const [bioOpen, setBioOpen] = useState(false);
-  const [popularExpanded, setPopularExpanded] = useState(false);
-  const playTrack = usePlayerStore((s) => s.playTrack);
-
-  const playablePopularTracks = buildArtistPlaybackQueue(artist);
-  const visiblePopularTracks = popularExpanded ? playablePopularTracks : playablePopularTracks.slice(0, 5);
-
-  const artistBio = `${artist.title} از چهره‌های شناخته‌شده موسیقی فارسی است...`;
-  // const formatDuration = (sec: number) => `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, "0")}`;
-
-  const seed = artist.id.split("").reduce((a, c) => a + c.charCodeAt(0), 0);
-  const hue = (seed * 47) % 360;
-  const tint = `hsl(${hue}, 42%, 22%)`;
-  const tintSoft = `hsl(${hue}, 38%, 14%)`;
+  const {
+    id,
+    artist,
+    homeData,
+    bioOpen,
+    setBioOpen,
+    popularExpanded,
+    setPopularExpanded,
+    playTrack,
+    playablePopularTracks,
+    visiblePopularTracks,
+    artistBio,
+    background,
+  } = useArtistPageData();
 
   return (
     <AppShell>
@@ -51,9 +32,8 @@ export default function ArtistPage() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         className="-mx-6 md:-mx-10 -mt-4 px-2"
-        style={{
-          background: `linear-gradient(180deg, ${tint} 0%, ${tintSoft} 360px, var(--bg-surface) 720px)`,
-        }}>
+        style={{ background }}
+      >
         <ArtistHero artist={artist} setTrack={playTrack} tracks={playablePopularTracks} onOpenBio={() => setBioOpen(true)} />
 
         <section className="px-6 py-8">
@@ -83,8 +63,8 @@ export default function ArtistPage() {
             <h2 className="text-2xl font-black mb-4">درباره هنرمند</h2>
             <button
               onClick={() => setBioOpen(true)}
-              className="group relative block w-full max-w-[680px] h-[340px] overflow-hidden rounded-lg text-right shadow-[var(--shadow-card)]">
-              {/* عکس به صورت یک لایه جداگانه با کنترل کامل */}
+              className="group relative block w-full max-w-[680px] h-[340px] overflow-hidden rounded-lg text-right shadow-[var(--shadow-card)]"
+            >
               <Image
                 src={artist.cover}
                 className="absolute inset-0 w-full h-full object-cover object-center"
@@ -93,10 +73,8 @@ export default function ArtistPage() {
                 sizes="(max-width: 768px) 100vw, 680px"
               />
 
-              {/* لایه گرادینت روی عکس */}
               <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/20 to-black/90" />
 
-              {/* محتوا */}
               <div className="relative z-10 h-full flex flex-col justify-end p-6">
                 <div className="text-sm font-bold mb-2 text-white">
                   ۲٬۴۵۸٬۹۲۱ شنونده ماهانه
@@ -111,7 +89,7 @@ export default function ArtistPage() {
             title="طرفداران همچنین گوش می‌دهند"
             isShowAll={true}
             showAllHref={`/collection/related-artists?artist=${artist.id}`}
-            cards={(homeData?.artists ?? []).filter((a) => a.id !== id)}
+            cards={(homeData?.artists ?? []).filter((artistItem) => artistItem.id !== id)}
           />
           <SectionRow
             title="بر اساس این هنرمند"

@@ -2,199 +2,45 @@
 
 import { motion } from "framer-motion";
 import { Heart, Clock, ArrowLeft } from "lucide-react";
-import { useRouter } from "next/navigation";
-import React, { useMemo, useRef, useState, use } from "react";
-import { AppShell } from "@/components/music/AppShell";
-import { usePlaylist, useArtist, useCurrentTrack, useHomeData } from "@/lib/hooks";
-import { usePlayerStore } from "@/store/player-store";
-import { useLibraryStore, type CustomTrack } from "@/store/library-store";
+import { use } from "react";
 import Link from "next/link";
-// LikeButton used inside track rows; imported by row component
+import { AppShell } from "@/components/music/AppShell";
 import PlaylistHeader from "@/components/music/PlaylistHeader";
 import PlaylistTrackRow from "@/components/music/PlaylistTrackRow";
 import AddSongsPanel from "@/components/music/AddSongsPanel";
-// tooltip primitives removed from this page (used in shared UI components)
-import { normalizePlayableQueue, normalizePlayableTrack, type PlayableTrackInput } from "@/lib/music-catalog";
-import type { Card } from "@/lib/mock-data";
-import { buildCardPlaybackQueue } from "@/lib/playback-context";
-
-// AlbumSaveButton and header/rows extracted to components in components/music/
-
-// نمونه دیتا محلی برای زمانی که API داده‌ای برنگرداند
-
-const sampleTracks: PlayableTrackInput[] = Array.from({ length: 10 }).map((_, i) => ({
-  id: `t${i}`,
-  title: [
-    "چتر خیس",
-    "زخم زبون",
-    "اتفاق",
-    "دل‌من‌ای",
-    "بی‌من‌مرو",
-    "سرنوشت",
-    "روزنه",
-    "حیران",
-    "ماه نو",
-    "افسانه",
-  ][i],
-  artist: [
-    "محسن چاوشی",
-    "همایون شجریان",
-    "سیروان خسروی",
-    "محسن یگانه",
-    "بنیامین",
-  ][i % 5],
-  album: "آلبوم برگزیده",
-  duration: `${3 + (i % 3)}:${String((10 + i * 7) % 60).padStart(2, "0")}`,
-}));
+import { formatTrackDuration, parseTrackDurationLabel, usePlaylistPageData } from "@/hooks/usePlaylistPageData";
 
 interface Props {
   params: Promise<{ id: string }> | { id: string };
 }
 
 export default function PlaylistPage({ params }: Props) {
-  const { id } = use(params as Promise<{ id: string }>); // unwrap params safely
-
-  const router = useRouter();
-
-  const handleBack = async () => {
-    const viewTransitionDocument = document as Document & {
-      startViewTransition?: (callback: () => Promise<void>) => { finished: Promise<void> };
-    };
-
-    if (viewTransitionDocument.startViewTransition) {
-      try {
-        await viewTransitionDocument.startViewTransition(() => {
-          router.back();
-          return Promise.resolve();
-        });
-      } catch {
-        router.back();
-      }
-    } else {
-      router.back();
-    }
-  };
-
+  const { id } = use(params as Promise<{ id: string }>);
   const {
-    customPlaylists,
-    updatePlaylistCover,
+    custom,
+    isLiked,
+    fileRef,
+    editing,
+    setEditing,
+    showSearch,
+    setShowSearch,
+    query,
+    setQuery,
+    title,
+    cover,
+    tracks,
+    headerCard,
+    handleBack,
+    handleCover,
     addTrackToPlaylist,
     updatePlaylistDetails,
-  } = useLibraryStore();
-  const likedTracks = useLibraryStore((s) => s.likedTracks);
-
-  const custom = customPlaylists.find((p) => p.id === id);
-  const { data: playlistData } = usePlaylist(id);
-  const card = custom ? undefined : (playlistData?.card ?? undefined);
-  const isLiked = id === "liked";
-
-  const fileRef = useRef<HTMLInputElement>(null);
-  const [editing, setEditing] = useState(false);
-  const { data: homeData } = useHomeData();
-  const [showSearch, setShowSearch] = useState(
-    (custom?.tracks.length ?? 0) === 0 || (isLiked && likedTracks.length === 0),
-  );
-  const [query, setQuery] = useState("");
-
-  const title = custom
-    ? custom.title
-    : isLiked
-      ? "آهنگ‌های لایک شده"
-      : (card?.title ?? "پلی‌لیست");
-  const cover = custom?.cover ?? card?.cover;
-  const tracks = custom
-    ? custom.tracks
-    : isLiked
-    ? likedTracks
-    : (playlistData?.tracks ?? sampleTracks);
-
-  // headerCard represents the item shown in the header (playlist/album)
-  const headerCard: Card = card ?? {
-    id,
-    title,
-    subtitle: "",
-    cover: cover ?? "",
-    type: isLiked ? "playlist" : "album",
-  };
-
-  const handleCover = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !custom) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      if (typeof reader.result === "string")
-        updatePlaylistCover(custom.id, reader.result);
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const allAvailableTracks = useMemo(() => {
-    const cards = [
-      ...(homeData?.featured ?? []),
-      ...(homeData?.radio ?? []),
-      ...(homeData?.albums ?? []),
-      ...(homeData?.artists ?? []),
-      ...(homeData?.playlists ?? []),
-    ];
-    const unique = new Map<string, CustomTrack>();
-
-    [...cards.flatMap((item) => buildCardPlaybackQueue(item)), ...sampleTracks.map((item) => normalizePlayableTrack(item))].forEach((track) => {
-      if (!unique.has(track.id)) {
-        unique.set(track.id, {
-          id: track.id,
-          title: track.title,
-          artist: track.artist,
-          album: track.album ?? "",
-          duration: String(track.duration),
-          cover: track.cover,
-          src: track.src,
-        });
-      }
-    });
-
-    return Array.from(unique.values());
-  }, [homeData]);
-
-  const filteredSuggest = allAvailableTracks.filter(
-    (t) =>
-      !query.trim() ||
-      (t.title ?? "").toLowerCase().includes(query.trim().toLowerCase()) ||
-      (t.artist ?? "").toLowerCase().includes(query.trim().toLowerCase()) ||
-      (t.album ?? "").toLowerCase().includes(query.trim().toLowerCase()),
-  );
-
-  const formatDuration = (d: number | string) => {
-    if (typeof d === "number")
-      return `${Math.floor(d / 60)}:${String(d % 60).padStart(2, "0")}`;
-    return d;
-  };
-
-  const parseDuration = (d: number | string) => {
-    if (typeof d === "number") return d;
-    const parts = String(d)
-      .split(":")
-      .map((p) => parseInt(p, 10));
-    if (
-      parts.length === 2 &&
-      !Number.isNaN(parts[0]) &&
-      !Number.isNaN(parts[1])
-    ) {
-      return parts[0] * 60 + parts[1];
-    }
-    return 0;
-  };
-
-  const { data: artistData } = useArtist(id);
-  const artist = artistData?.artist ?? undefined;
-  useCurrentTrack();
-  const playTrack = usePlayerStore((s) => s.playTrack);
-  const currentTrack = usePlayerStore((s) => s.track);
-  const isPlaying = usePlayerStore((s) => s.isPlaying);
-  const playableTracks = normalizePlayableQueue(tracks as Array<PlayableTrackInput | CustomTrack>, {
-    cover: cover ?? artist?.cover ?? "/images/moein.jpg",
-    artist: artist?.title ?? "",
-  });
-  
+    artist,
+    playTrack,
+    currentTrack,
+    isPlaying,
+    playableTracks,
+    filteredSuggest,
+  } = usePlaylistPageData(id);
 
   return (
     <AppShell>
@@ -202,7 +48,6 @@ export default function PlaylistPage({ params }: Props) {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="-mx-6 md:-mx-10 -mt-4 px-2">
-        {/* back button */}
         <button onClick={handleBack} className="absolute top-5 left-5 z-50 md:hidden">
           <div className="flex items-center justify-center w-10 h-10 rounded-full bg-bg-surface/50 text-gray-300 hover:text-white transition-all">
             <ArrowLeft className="w-4 h-4" />
@@ -223,7 +68,6 @@ export default function PlaylistPage({ params }: Props) {
           tracks={playableTracks}
         />
 
-        {/* Track list */}
         <div className="px-6">
           {tracks.length > 0 && (
             <div className="hidden md:grid grid-cols-[24px_1fr_1fr_60px] gap-4 px-4 py-2 mb-4 border-b border-border-default text-xs text-text-secondary uppercase">
@@ -234,23 +78,22 @@ export default function PlaylistPage({ params }: Props) {
             </div>
           )}
 
-          {playableTracks.map((t, i) => (
+          {playableTracks.map((track, index) => (
             <PlaylistTrackRow
-              key={t.id}
-              t={t}
-              i={i}
+              key={track.id}
+              t={track}
+              i={index}
               artist={artist}
               cover={cover}
               setTrack={playTrack}
               queue={playableTracks}
               isPlaying={isPlaying}
               currentTrack={currentTrack}
-              formatDuration={formatDuration}
-              parseDuration={parseDuration}
+              formatDuration={formatTrackDuration}
+              parseDuration={parseTrackDurationLabel}
             />
           ))}
 
-          {/* Empty state for liked playlist */}
           {isLiked && tracks.length === 0 && (
             <div className="py-24 text-center text-white/90">
               <div className="max-w-2xl mx-auto">
@@ -268,7 +111,6 @@ export default function PlaylistPage({ params }: Props) {
               </div>
             </div>
           )}
-          {/* Empty state for custom playlist */}
           {custom && tracks.length === 0 && !showSearch && (
             <div className="py-16 text-center text-text-secondary">
               این پلی‌لیست هنوز خالی است. روی دکمه افزودن آهنگ بزن.
