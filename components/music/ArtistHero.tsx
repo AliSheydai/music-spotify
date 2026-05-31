@@ -1,9 +1,9 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Pause, Play, BadgeCheck, ArrowLeft } from "lucide-react";
+import { Pause, Play, BadgeCheck } from "lucide-react";
+import MobileBackButton from "@/components/ui/MobileBackButton";
 import Image from "next/image";
-import { TransitionLink } from "@/components/view-transition";
 import FollowButton from "@/components/music/FollowButton";
 import { usePlayerStore } from "@/store/player-store";
 import { isTrackInQueue } from "@/lib/playback-context";
@@ -89,11 +89,7 @@ export default function ArtistHero({
         </div>
       </div>
 
-      <TransitionLink href="/" className="absolute top-5 left-5 z-50 md:hidden">
-        <div className="flex items-center justify-center w-10 h-10 rounded-full bg-bg-surface/50 text-gray-300 hover:text-white transition-all">
-          <ArrowLeft className="w-4 h-4" />
-        </div>
-      </TransitionLink>
+          <MobileBackButton />
     </div>
   );
 }

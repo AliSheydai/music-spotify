@@ -81,11 +81,12 @@
   --accent-gold:     #C9A84C;
   --accent-gold-dim: #8A6F2E;
   --accent-violet:   #8B5CF6;
-  --accent-emerald:  #10B981;
+  --accent-emerald:  #C9A84C;
+  /* --accent-emerald:  #10B981; */
   --accent-rose:     #F472B6;
 
   --text-primary:   #E2E8F0;
-  --text-secondary: #94A3B8;
+  --text-secondary: #ffffff;
   --text-muted:     #4A5568;
   --text-on-accent: #0A0A0F;
 

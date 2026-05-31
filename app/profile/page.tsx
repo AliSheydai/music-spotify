@@ -5,6 +5,7 @@ import ProfileCard from "@/components/layout/ProfileCard";
 import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { runWithViewTransition } from "@/lib/view-transition";
+import MobileBackButton from "@/components/ui/MobileBackButton";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -23,14 +24,7 @@ export default function ProfilePage() {
     <AppShell withPadding={true}>
       <div className="max-w-3xl mx-auto py-8 relative">
         {/* Mobile back button */}
-        <button
-          onClick={handleBack}
-          className="absolute top-5 left-5 z-50 md:hidden"
-        >
-          <div className="flex items-center justify-center w-10 h-10 rounded-full bg-bg-surface/50 text-gray-300 hover:text-white transition-all">
-            <ArrowLeft className="w-4 h-4" />
-          </div>
-        </button>
+        <MobileBackButton onClick={handleBack} />
 
         <h1
           className="text-2xl font-semibold text-white mb-6"

@@ -4,6 +4,7 @@ import Image from "next/image";
 import NextLink from "next/link";
 import { Heart } from "lucide-react";
 import type { Card } from "@/lib/mock-data";
+import { Bookmark } from 'lucide-react';
 
 interface LibraryItemProps {
   item: Card;
@@ -32,7 +33,7 @@ function ItemCover({
       <div
         className={`bg-gradient-to-br from-violet-500 to-fuchsia-700 flex items-center justify-center ${className}`}
       >
-        <Heart className="w-1/3 h-1/3 text-white fill-white" />
+        <Heart className="text-white fill-white" size={24}/>
       </div>
     );
   }
@@ -42,13 +43,7 @@ function ItemCover({
       <div
         className={`bg-accent-emerald flex items-center justify-center ${className}`}
       >
-        <svg
-          viewBox="0 0 24 24"
-          className="w-1/3 h-1/3 text-white fill-white"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14l-5-5 1.41-1.41L12 14.17l7.59-7.59L21 8l-9 9z" />
-        </svg>
+        <Bookmark className="fill-yellow-400 text-yellow-400" size={28} />
       </div>
     );
   }
@@ -88,12 +83,12 @@ function ListItem({ item }: { item: Card }) {
         className={`w-14 h-14 shrink-0 ${isArtist ? "rounded-full" : "rounded-lg"}`}
       />
       <div className="min-w-0 flex-1">
-        <p className="text-sm font-semibold text-text-primary truncate leading-tight mb-0.5">
+        <p className="text-sm font-semibold text-text-primary truncate leading-tight mb-2">
           {item.title}
         </p>
         <p
           className={`text-xs truncate leading-tight ${
-            isLiked ? "text-accent-emerald" : "text-text-secondary"
+            isLiked ? "text-accent-gold" : "text-gray-400"
           }`}
         >
           {isArtist ? "هنرمند" : item.subtitle}

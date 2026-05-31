@@ -6,11 +6,9 @@
    پلیر مینی روی این قرار می‌گیرد (bottom-16)
    ============================================================ */
 
-import Link            from 'next/link'
 import { usePathname } from 'next/navigation'
-import { motion, AnimatePresence } from 'framer-motion'
-import { Home, LayoutGrid, Bell, User, Search } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { motion, AnimatePresence, type Variants } from 'framer-motion'
+import { Home, LayoutGrid, User, Search } from 'lucide-react'
 import { TransitionLink } from '../view-transition'
 
 /* -------------------------------------------------------
@@ -18,7 +16,7 @@ import { TransitionLink } from '../view-transition'
 ------------------------------------------------------- */
 const TABS = [
   { href: '/',         label: 'خانه',     icon: Home       },
-  { href: '/library',  label: 'گالری',    icon: LayoutGrid },
+  { href: '/library',  label: 'کتابخانه', icon: LayoutGrid },
   // { href: '/charts',   label: 'اعلان‌ها',  icon: Bell       },
   { href: '/search',   label: 'جستجو',    icon: Search     },
   { href: '/profile',  label: 'پروفایل',  icon: User       },
@@ -39,7 +37,7 @@ const dotVariants = {
   exit:     { scale: 0, opacity: 0 },
 }
 
-const iconVariants = {
+const iconVariants: Variants = {
   active:   { y: -2, transition: { type: 'spring', stiffness: 500, damping: 28 } },
   inactive: { y:  0, transition: { type: 'spring', stiffness: 500, damping: 28 } },
 }
@@ -100,7 +98,7 @@ export function MobileNav() {
                 {/* آیکون + dot */}
                 <div className="relative flex items-center justify-center">
                   <motion.div
-                    variants={iconVariants as any}
+                    variants={iconVariants}
                     animate={active ? 'active' : 'inactive'}
                   >
                     <Icon

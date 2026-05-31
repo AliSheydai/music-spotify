@@ -3,13 +3,17 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import { Music, Heart, Pencil, Pause, Play, X } from "lucide-react";
-import { TransitionLink } from "@/components/view-transition";
+// import { TransitionLink } from "@/components/view-transition"; // not used anymore
+import { useRouter } from "next/navigation";
+import { runWithViewTransition } from "@/lib/view-transition";
 import AlbumSaveButton from "@/components/music/AlbumSaveButton";
 import { ArrowLeft } from "lucide-react";
 import { usePlayerStore } from "@/store/player-store";
 import { isTrackInQueue } from "@/lib/playback-context";
 import type { Card, Track } from "@/lib/mock-data";
 import type { CustomPlaylist } from "@/store/library-store";
+
+import MobileBackButton from "@/components/ui/MobileBackButton";
 
 export default function PlaylistHeader({
   custom,
@@ -75,11 +79,7 @@ export default function PlaylistHeader({
 
   return (
     <>
-      <TransitionLink href="/" className="absolute top-5 left-5 z-50 md:hidden">
-        <div className="flex items-center justify-center w-10 h-10 rounded-full bg-bg-surface/50 text-gray-300 hover:text-white transition-all">
-          <ArrowLeft className="w-4 h-4" />
-        </div>
-      </TransitionLink>
+      <MobileBackButton />
 
       <div className="relative px-4 pt-12 pb-6 bg-gradient-to-b from-violet-700/40 to-transparent md:pt-8">
         <div className="flex flex-col items-center md:flex-row md:items-end gap-6">

@@ -1,10 +1,11 @@
 "use client";
 
-import { Search, LayoutGrid, List, X, Plus } from "lucide-react";
+import { Search, X, Plus, User, ChevronLeft } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import type { LibrarySort } from "@/store/library-store";
-import { SORT_LABELS } from "../hooks/useMobileLibrary";
 import type { RefObject } from "react";
+import NextLink from "next/link";
+import { Avatar } from "@/components/ui/avatar";
 
 interface LibraryHeaderProps {
   sort: LibrarySort;
@@ -21,103 +22,121 @@ interface LibraryHeaderProps {
 }
 
 export function LibraryHeader({
-  sort,
-  isGridView,
   searchOpen,
   searchQuery,
   searchInputRef,
   onSearchOpen,
   onSearchClose,
   onSearchChange,
-  onSortOpen,
-  onToggleView,
   onCreatePlaylist,
 }: LibraryHeaderProps) {
   return (
-    <div className="flex items-center justify-between px-4 pt-4 pb-2 gap-2">
-      {/* Left: search icon or input */}
-      <AnimatePresence initial={false} mode="wait">
-        {searchOpen ? (
+    // ارتفاع ثابت + relative → هیچ layout shift نخواهیم داشت
+    <div className="relative px-4 pt-4 pb-3 h-18" style={{ minHeight: "4.5rem" }}>
+
+      {/* === حالت عادی === */}
+      <AnimatePresence initial={false}>
+        {!searchOpen && (
           <motion.div
-            key="search-input"
-            initial={{ opacity: 0, flex: 0 }}
-            animate={{ opacity: 1, flex: 1 }}
-            exit={{ opacity: 0, flex: 0 }}
-            transition={{ duration: 0.2 }}
-            className="flex items-center gap-2 bg-bg-elevated rounded-md px-3 py-2 flex-1"
-          >
-            <X
-              className="w-4 h-4 text-text-secondary shrink-0 cursor-pointer"
-              onClick={onSearchClose}
-            />
-            <input
-              ref={searchInputRef}
-              value={searchQuery}
-              onChange={(e) => onSearchChange(e.target.value)}
-              placeholder='جستجو در «کتابخانه شما»'
-              dir="rtl"
-              className="flex-1 bg-transparent text-sm text-text-primary placeholder:text-text-secondary outline-none"
-            />
-            {searchQuery && (
-              <button onClick={() => onSearchChange("")}>
-                <X className="w-3.5 h-3.5 text-text-secondary" />
-              </button>
-            )}
-          </motion.div>
-        ) : (
-          <motion.button
-            key="search-btn"
+            key="default-header"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={onSearchOpen}
-            className="p-2 text-text-secondary hover:text-text-primary transition-colors"
+            transition={{ duration: 0.15 }}
+            // absolute → از جریان خارج است؛ layout shift نمی‌دهد
+            className="absolute inset-x-4 top-4 bottom-3 flex items-center justify-between"
           >
-            <Search className="w-5 h-5" />
-          </motion.button>
+            {/* آواتار + عنوان */}
+            <div className="flex items-center gap-3">
+              <NextLink
+                href="/profile"
+                className="flex items-center justify-center p-1 rounded-lg bg-white/5 border border-white/5 active:bg-white/10 transition-all"
+                aria-label="پروفایل"
+              >
+                <Avatar className="h-8 w-8 flex items-center justify-center">
+                  <User className="w-5 h-5 text-gray-300" />
+                </Avatar>
+              </NextLink>
+              <h2 className="text-xl text-white font-bold">کتابخانه شما</h2>
+            </div>
+
+            {/* دکمه‌های جستجو و ایجاد */}
+            <div className="flex items-center gap-1">
+              <button
+                onClick={onSearchOpen}
+                className="p-2 text-text-secondary active:text-text-primary transition-colors"
+              >
+                <Search className="w-5 h-5 text-white" />
+              </button>
+              <button
+                onClick={onCreatePlaylist}
+                className="p-2 text-text-secondary active:text-text-primary transition-colors"
+              >
+                <Plus className="w-5 h-5 text-white" />
+              </button>
+            </div>
+          </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Right: sort label + view toggle + create */}
-      {!searchOpen && (
-        <div className="flex items-center gap-1">
-          <button
-            onClick={onSortOpen}
-            className="flex items-center gap-1 text-sm text-text-secondary px-2 py-1.5 rounded-md active:bg-bg-elevated transition-colors"
+      {/* === حالت جستجو === */}
+      <AnimatePresence initial={false}>
+        {searchOpen && (
+          <motion.div
+            key="search-header"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
+            // absolute → هم‌تراز با حالت عادی؛ بدون جابجایی layout
+            className="absolute inset-x-4 top-4 bottom-3 flex items-center gap-3"
+            style={{ direction: "ltr" }}
           >
-            <span>{SORT_LABELS[sort]}</span>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="w-4 h-4"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
+            {/* دکمه بستن */}
+            <button
+              onClick={onSearchClose}
+              className="shrink-0 active:text-text-primary transition-colors"
             >
-              <path d="m3 16 4 4 4-4" />
-              <path d="M7 20V4" />
-              <path d="m21 8-4-4-4 4" />
-              <path d="M17 4v16" />
-            </svg>
-          </button>
+              <ChevronLeft className="w-5 h-5 text-white" />
+            </button>
 
-          <button
-            onClick={onToggleView}
-            className="p-2 text-text-secondary hover:text-text-primary transition-colors"
-          >
-            {isGridView ? <List className="w-5 h-5" /> : <LayoutGrid className="w-5 h-5" />}
-          </button>
-
-          <button
-            onClick={onCreatePlaylist}
-            className="p-2 text-text-secondary hover:text-text-primary transition-colors"
-          >
-            <Plus className="w-5 h-5" />
-          </button>
-        </div>
-      )}
+            {/* اینپوت */}
+            <motion.div
+              initial={{ width: 0, opacity: 0 }}
+              animate={{ width: "100%", opacity: 1 }}
+              exit={{ width: 0, opacity: 0 }}
+              transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
+              className="flex items-center gap-2 bg-bg-elevated rounded-xl px-4 py-2.5 border border-border-default overflow-hidden"
+              style={{ direction: "rtl" }}
+            >
+              <Search className="w-4 h-4 text-text-secondary shrink-0" />
+              <input
+                ref={searchInputRef}
+                value={searchQuery}
+                onChange={(e) => onSearchChange(e.target.value)}
+                placeholder="جستجو در «کتابخانه شما»"
+                dir="rtl"
+                autoFocus
+                className="flex-1 bg-transparent text-sm text-text-primary placeholder:text-text-secondary outline-none text-right min-w-0"
+              />
+              <AnimatePresence>
+                {searchQuery && (
+                  <motion.button
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.8 }}
+                    transition={{ duration: 0.12 }}
+                    onClick={() => onSearchChange("")}
+                    className="shrink-0"
+                  >
+                    <X className="w-4 h-4 text-text-secondary" />
+                  </motion.button>
+                )}
+              </AnimatePresence>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

@@ -4,7 +4,7 @@ import { syncLikedTracks } from "@/lib/api";
 import type { Card } from "@/lib/mock-data";
 
 export type SidebarMode = "normal" | "collapsed" | "expanded";
-export type LibraryFilter = "all" | "playlists" | "artists";
+export type LibraryFilter = "all" | "playlists" | "artists" | "podcasts";
 export type LibraryView = "compact" | "list" | "grid" | "largeGrid";
 export type LibrarySort = "recents" | "recentlyAdded" | "alphabetical" | "creator";
 

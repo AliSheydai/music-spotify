@@ -26,10 +26,12 @@ export function AppShell({
   children, 
   withPadding = true,
   transparentBg = false,
+  contentClassName = "",
 }: { 
   children: React.ReactNode;
   withPadding?: boolean;
   transparentBg?: boolean;
+  contentClassName?: string;
 }) {
   const hoveredId = usePlayerStore((s) => s.hoveredCardId);
   const expanded = useLibraryStore((s) => s.sidebarMode === "expanded");
@@ -50,7 +52,7 @@ export function AppShell({
     ];
     const hue = hues[seed % hues.length];
     return `linear-gradient(180deg, ${hue}, transparent 45%)`;
-  }, [hoveredId]);
+  }, [allCards, hoveredId]);
 
   return (
     <div className="h-screen flex flex-col bg-bg-base text-text-primary overflow-hidden">
@@ -62,20 +64,18 @@ export function AppShell({
       <div className="flex-1 flex gap-2 p-0 md:p-2 pt-0 md:pt-1 min-h-0 relative">
         <Sidebar />
 
-        {!expanded && (
-          <main className={`flex-1 min-w-0 md:rounded-xl overflow-hidden flex flex-col relative ${transparentBg ? 'bg-transparent' : 'bg-bg-surface'}`}>
-            <motion.div
-              animate={{ background: transparentBg ? 'none' : bgGradient }}
-              transition={{ duration: 0.6 }}
-              className="flex-1 overflow-y-auto"
-            >
-              {/* اعمال شرطی کلاس‌ها بر اساس پراپ withPadding */}
-              <div className={withPadding ? "px-4 pt-2 pb-4 md:px-8 md:pt-4" : ""}>
-                {children}
-              </div>
-            </motion.div>
-          </main>
-        )}
+        <main className={`flex-1 min-w-0 md:rounded-xl overflow-hidden flex flex-col relative ${expanded ? "md:hidden" : ""} ${transparentBg ? 'bg-transparent' : 'bg-bg-surface'}`}>
+          <motion.div
+            animate={{ background: transparentBg ? 'none' : bgGradient }}
+            transition={{ duration: 0.6 }}
+            className="flex-1 overflow-y-auto"
+          >
+            {/* اعمال شرطی کلاس‌ها بر اساس پراپ withPadding */}
+            <div className={`${withPadding ? "px-4 pt-2 pb-4 md:px-8 md:pt-4" : ""} ${contentClassName}`.trim()}>
+              {children}
+            </div>
+          </motion.div>
+        </main>
 
         <NowPlayingPanel />
       </div>

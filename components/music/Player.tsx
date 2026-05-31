@@ -144,7 +144,7 @@ export function Player() {
               animate={{ y: 0 }}
               exit={{ y: 100 }}
               onClick={toggleNowPlayingFullscreen}
-              className="fixed bottom-[64px] left-0 right-0 z-50 md:hidden h-[64px] shrink-0 bg-[#1a1a1a] border-t rounded-xl border-white/10 px-3 mx-2 flex items-center gap-3 cursor-pointer active:bg-white/5 transition-colors">
+              className="fixed bottom-[64px] left-0 right-0 z-45 md:hidden h-[64px] shrink-0 bg-[#1a1a1a] border-t rounded-xl border-white/10 px-3 mx-2 flex items-center gap-3 cursor-pointer active:bg-white/5 transition-colors">
               <motion.img
                 key={track.cover}
                 initial={{ scale: 0.9, opacity: 0 }}
