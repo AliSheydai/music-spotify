@@ -8,11 +8,11 @@ import type { LibrarySort } from "@/store/library-store";
 
 interface FilterChipsProps {
   activeFilter: string;
-  searchOpen: boolean;
-  searchQuery: string;
+  searchOpen?: boolean;
+  searchQuery?: string;
   onSortOpen?: () => void;
   onToggleView?: () => void;
-  onCreatePlaylist: () => void;
+  onCreatePlaylist?: () => void;
   onFilterSelect: (f: MobileLibraryFilter) => void;
   onClear: () => void;
 }

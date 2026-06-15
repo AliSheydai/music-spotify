@@ -11,22 +11,30 @@ const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 export const metadata: Metadata = {
   title: {
-    default: "Lovable App",
-    template: "%s — موسیقی",
+    default: "اسپاتیفای | موسیقی برای هر لحظه",
+    template: "%s | اسپاتیفای فارسی",
   },
-  description: "Lovable Generated Project",
-  
-  authors: [{ name: "Lovable" }],
+
+  description:
+    "به دنیای موسیقی فارسی خوش آمدی. جدیدترین آهنگ‌ها، پلی‌لیست‌های اختصاصی و آثار هنرمندان محبوب را در یک تجربه شنیداری مدرن کشف کن.",
+
+  authors: [{ name: "اسپاتیفای فارسی" }],
+
   openGraph: {
-    title: "Lovable App",
-    description: "Lovable Generated Project",
+    title: "اسپاتیفای فارسی",
+    description:
+      "آهنگ‌های محبوب، پلی‌لیست‌های شخصی‌سازی‌شده و هزاران ساعت موسیقی در یک پلتفرم فارسی.",
     type: "website",
   },
+
   twitter: {
-    card: "summary",
-    site: "@Lovable",
+    card: "summary_large_image",
+    title: "اسپاتیفای فارسی",
+    description:
+      "موسیقی برای هر لحظه.",
   },
 };
+
 
 export const viewport = {
   width: "device-width",
